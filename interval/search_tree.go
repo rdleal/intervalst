@@ -1,94 +1,101 @@
+// Package interval implements a generic interval tree with left leaning red-black (LLRB) algorithm.
 package interval
 
-import (
-	"fmt"
-)
+import "sync"
 
-type node[T any] struct {
-	start  T
-	end    T
-	maxEnd T
-	right  *node[T]
-	left   *node[T]
+// SearchTree is a generic type representing the Interval Search Tree
+// where V is a generic value type, and T is a generic interval key type.
+type SearchTree[V, T any] struct {
+	mu   sync.RWMutex // used to serialize read and write operations
+	root *node[V, T]
+	cmp  CmpFunc[T]
 }
 
-func newNode[T any](start, end T) *node[T] {
-	return &node[T]{
-		start:  start,
-		end:    end,
-		maxEnd: end,
+// NewSearchTree returns an initialized interval search tree.
+// The cmp parameter is used for comparing total order of the interval key type T
+// when inserting or looking up an interval in the tree.
+// For more details on cmp, see the CmpFunc type.
+func NewSearchTree[V, T any](cmp CmpFunc[T]) *SearchTree[V, T] {
+	if cmp == nil {
+		panic("NewSearchTree: comparison function cmp cannot be nil")
 	}
-}
-
-type SearchTree[T any] struct {
-	root *node[T]
-	cmp  func(start, end T) int
-}
-
-func NewSearchTree[T any](cmp func(start, end T) int) *SearchTree[T] {
-	return &SearchTree[T]{
+	return &SearchTree[V, T]{
 		cmp: cmp,
 	}
 }
 
-func (st *SearchTree[T]) Insert(start, end T) error {
-	if st.cmp(end, start) <= 0 {
-		return fmt.Errorf("interval search tree invalid range: start value %v cannot be less than or equal end value %v", start, end)
-	}
+func (st *SearchTree[V, T]) rotateLeft(h *node[V, T]) *node[V, T] {
+	x := h.right
+	h.right = x.left
+	x.left = h
+	x.color = h.color
+	x.maxEnd = h.maxEnd
+	h.color = red
 
-	if st.root == nil {
-		st.root = newNode(start, end)
-		return nil
-	}
-
-	cur := st.root
-
-	for cur != nil {
-		if st.cmp(end, cur.maxEnd) > 0 {
-			cur.maxEnd = end
-		}
-
-		if st.cmp(start, cur.start) < 0 || st.cmp(start, cur.start) == 0 && st.cmp(end, cur.end) < 0 {
-			if cur.left == nil {
-				cur.left = newNode(start, end)
-				break
-			}
-			cur = cur.left
-		} else {
-			if cur.right == nil {
-				cur.right = newNode(start, end)
-				break
-			}
-			cur = cur.right
-		}
-	}
-
-	return nil
+	st.updateMaxEnd(h)
+	return x
 }
 
-func (st *SearchTree[T]) AnyIntersection(start, end T) (intersectStart, intersectEnd T, ok bool) {
-	if st.root == nil {
-		return
-	}
+func (st *SearchTree[V, T]) rotateRight(h *node[V, T]) *node[V, T] {
+	x := h.left
+	h.left = x.right
+	x.right = h
+	x.color = h.color
+	x.maxEnd = h.maxEnd
+	h.color = red
 
-	cur := st.root
-
-	for cur != nil {
-		if st.intersects(cur, start, end) {
-			return cur.start, cur.end, true
-		}
-
-		next := cur.left
-		if cur.left == nil || st.cmp(start, cur.left.maxEnd) > 0 {
-			next = cur.right
-		}
-
-		cur = next
-	}
-
-	return
+	st.updateMaxEnd(h)
+	return x
 }
 
-func (st *SearchTree[T]) intersects(n *node[T], start, end T) bool {
-	return st.cmp(n.start, end) <= 0 && st.cmp(start, n.end) <= 0
+func (st *SearchTree[V, T]) updateMaxEnd(h *node[V, T]) {
+	h.maxEnd = h.interval.end
+	if h.left != nil && st.cmp.gt(h.left.maxEnd, h.maxEnd) {
+		h.maxEnd = h.left.maxEnd
+	}
+
+	if h.right != nil && st.cmp.gt(h.right.maxEnd, h.maxEnd) {
+		h.maxEnd = h.right.maxEnd
+	}
+}
+
+func (st *SearchTree[V, T]) balanceNode(h *node[V, T]) *node[V, T] {
+	if isRed(h.right) && !isRed(h.left) {
+		h = st.rotateLeft(h)
+	}
+
+	if isRed(h.left) && isRed(h.left.left) {
+		h = st.rotateRight(h)
+	}
+
+	if isRed(h.left) && isRed(h.right) {
+		flipColors(h)
+	}
+
+	return h
+}
+
+func (st *SearchTree[V, T]) moveRedLeft(h *node[V, T]) *node[V, T] {
+	flipColors(h)
+	if h.right != nil && isRed(h.right.left) {
+		h.right = st.rotateRight(h.right)
+		h = st.rotateLeft(h)
+		flipColors(h)
+	}
+	return h
+}
+
+func (st *SearchTree[V, T]) moveRedRight(h *node[V, T]) *node[V, T] {
+	flipColors(h)
+	if h.left != nil && isRed(h.left.left) {
+		h = st.rotateRight(h)
+		flipColors(h)
+	}
+	return h
+}
+
+func (st *SearchTree[V, T]) fixUp(h *node[V, T]) *node[V, T] {
+	st.updateMaxEnd(h)
+
+	return st.balanceNode(h)
 }

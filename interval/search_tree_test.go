@@ -2,176 +2,162 @@ package interval
 
 import (
 	"fmt"
-	"reflect"
+	"math/rand"
 	"testing"
 	"time"
 )
 
-var timeCmp = func(start, end time.Time) int {
-	switch {
-	case start.After(end):
-		return 1
-	case start.Before(end):
-		return -1
-	default:
-		return 0
+func TestNewSearchTree_EmptyCmp(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("NewSearchTree(nil): got execution without panic")
+		}
+	}()
+
+	NewSearchTree[string, int](nil)
+}
+
+func testGenKeys(n int64) [][]int64 {
+	rand.Seed(time.Now().UnixNano())
+	res := make([][]int64, n)
+	for i := 0; i < int(n); i++ {
+		start := rand.Int63n(n)
+		end := rand.Int63n(n-start+1) + start + 1
+		res[i] = []int64{start, end}
 	}
+
+	return res
+
 }
 
-func TestSearchTree_Time(t *testing.T) {
-	t.Run("HasIntersection", func(t *testing.T) {
-		st := NewSearchTree(timeCmp)
-
-		start, end := time.Now(), time.Now().Add(1*time.Hour)
-		st.Insert(start, end)
-
-		start, end = end.Add(1*time.Hour), end.Add(2*time.Hour)
-		st.Insert(start, end)
-
-		start, end = time.Now().Add(-(5 * time.Hour)), time.Now().Add(-(3 * time.Hour))
-		st.Insert(start, end)
-
-		wantStart, wantEnd := start, end
-
-		start, end = start.Add(1*time.Hour), end.Add(1*time.Hour)
-
-		gotStart, gotEnd, ok := st.AnyIntersection(start, end)
-		if !ok {
-			t.Errorf("st.AnyIntersection(%v, %v): got no intersection", start, end)
-		}
-
-		if !reflect.DeepEqual(gotStart, wantStart) {
-			t.Errorf("st.AnyIntersection(%v, %v): got unexpected start value %v; want %v", start, end, gotStart, wantStart)
-		}
-
-		if !reflect.DeepEqual(gotEnd, wantEnd) {
-			t.Errorf("st.AnyIntersection(%v, %v): got unexpected end value %v; want %v", start, end, gotEnd, wantEnd)
-		}
-	})
-
-	t.Run("HasExactIntersection", func(t *testing.T) {
-		st := NewSearchTree(timeCmp)
-
-		start, end := time.Now(), time.Now().Add(1*time.Hour)
-		st.Insert(start, end)
-
-		start, end = start.Add(2*time.Hour), end.Add(1*time.Hour)
-		st.Insert(start, end)
-
-		start, end = start.Add(-(5 * time.Hour)), end.Add(-(3 * time.Hour))
-		st.Insert(start, end)
-
-		wantStart, wantEnd := start, end
-
-		gotStart, gotEnd, ok := st.AnyIntersection(start, end)
-		if !ok {
-			t.Errorf("st.AnyIntersection(%v, %v): got no intersection", start, end)
-		}
-
-		if !reflect.DeepEqual(gotStart, wantStart) {
-			t.Errorf("st.AnyIntersection(%v, %v): got unexpected start value %v; want %v", start, end, gotStart, wantStart)
-		}
-
-		if !reflect.DeepEqual(gotEnd, wantEnd) {
-			t.Errorf("st.AnyIntersection(%v, %v): got unexpected end value %v; want %v", start, end, gotEnd, wantEnd)
-		}
-	})
-
-	t.Run("HasNoIntersection", func(t *testing.T) {
-		st := NewSearchTree(timeCmp)
-
-		start, end := time.Now(), time.Now().Add(1*time.Hour)
-		st.Insert(start, end)
-
-		start, end = start.Add(2*time.Hour), end.Add(1*time.Hour)
-		st.Insert(start, end)
-
-		start, end = start.Add(5*time.Hour), end.Add(3*time.Hour)
-		st.Insert(start, end)
-
-		start, end = start.Add(1*time.Hour), end.Add(1*time.Hour)
-
-		gotStart, gotEnd, ok := st.AnyIntersection(start, end)
-		if ok {
-			t.Errorf("st.AnyIntersection(%v, %v): got unexpected intersection: %v - %v", start, end, gotStart, gotEnd)
-		}
-	})
-}
-
-func TestSearchTree_Insert_Error(t *testing.T) {
-	t.Run("InvalidRange", func(t *testing.T) {
-		st := NewSearchTree(timeCmp)
-
-		start, end := time.Now(), time.Now().Add(-(1 * time.Hour))
-		err := st.Insert(start, end)
-		if err == nil {
-			t.Errorf("st.Insert(%v, %v): got nil error", start, end)
-		}
-	})
-}
-
-func TestSearchTree_Int(t *testing.T) {
-	st := NewSearchTree(func(start, end int) int { return start - end })
-
-	st.Insert(17, 19)
-	st.Insert(5, 8)
-	st.Insert(21, 24)
-	st.Insert(4, 8)
-	st.Insert(15, 18)
-	st.Insert(7, 10)
-	st.Insert(16, 22)
-
+func BenchmarkSearchTree_Insert(b *testing.B) {
 	testCases := []struct {
-		start     int
-		end       int
-		wantStart int
-		wantEnd   int
-		wantOK    bool
+		n    int
+		keys [][]int64
 	}{
 		{
-			start:     23,
-			end:       25,
-			wantOK:    true,
-			wantStart: 21,
-			wantEnd:   24,
+			n:    10_000,
+			keys: testGenKeys(10_000),
 		},
 		{
-			start:  12,
-			end:    14,
-			wantOK: false,
+			n:    100_000,
+			keys: testGenKeys(100_000),
 		},
 		{
-			start:     21,
-			end:       23,
-			wantOK:    true,
-			wantStart: 16,
-			wantEnd:   22,
+			n:    1_000_000,
+			keys: testGenKeys(1_000_000),
+		},
+		{
+			n:    10_000_000,
+			keys: testGenKeys(10_000_000),
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprint(tc.start, tc.end), func(t *testing.T) {
-			gotStart, gotEnd, ok := st.AnyIntersection(tc.start, tc.end)
-			if ok != tc.wantOK {
-				t.Errorf("st.AnyIntersection(%v, %v): got intersection %t; want %t", tc.start, tc.end, ok, tc.wantOK)
-			}
+		b.Run(fmt.Sprint(tc.n), func(b *testing.B) {
+			tree := NewSearchTree[int](func(x, y int64) int { return int(x - y) })
 
-			if !reflect.DeepEqual(gotStart, tc.wantStart) {
-				t.Errorf("st.AnyIntersection(%v, %v): got unexpected start value %v; want %v", tc.start, tc.end, gotStart, tc.wantStart)
-			}
-
-			if !reflect.DeepEqual(gotEnd, tc.wantEnd) {
-				t.Errorf("st.AnyIntersection(%v, %v): got unexpected end value %v; want %v", tc.start, tc.end, gotEnd, tc.wantEnd)
+			for i := 0; i < b.N; i++ {
+				for j, k := range tc.keys {
+					err := tree.Insert(k[0], k[1], j)
+					if err != nil {
+						b.Fatalf("tree.Insert(%v, %v, %v): got unexpected error %v", k[0], k[1], i, err)
+					}
+				}
 			}
 		})
 	}
 }
 
-func TestSearchTree_AnyIntersection_EmptyTree(t *testing.T) {
-	st := NewSearchTree(func(i, j int) int { return j - i })
+func setupNewTree(keys int64) *SearchTree[int, int64] {
+	rand.Seed(time.Now().UnixNano())
+	st := NewSearchTree[int](func(x, y int64) int { return int(x - y) })
 
-	gotStart, gotEnd, ok := st.AnyIntersection(1, 10)
-	if ok {
-		t.Errorf("st.AnyIntersect(1, 10): got unexpected intersection %v, %v", gotStart, gotEnd)
+	for i, k := range testGenKeys(keys) {
+		st.Insert(k[0], k[1], i)
+	}
+
+	return st
+}
+
+func testGenKey(n int64) (start, end int64) {
+	rand.Seed(time.Now().UnixNano())
+	start = rand.Int63n(n)
+	end = rand.Int63n(n-start+1) + start + 1
+
+	return
+}
+
+var result int
+
+func BenchmarkSearchTree_AnyIntersection(b *testing.B) {
+	testCases := []struct {
+		keys int64
+		tree *SearchTree[int, int64]
+	}{
+		{
+			keys: 10_000,
+			tree: setupNewTree(10_000),
+		},
+		{
+			keys: 100_000,
+			tree: setupNewTree(100_000),
+		},
+		{
+			keys: 1_000_000,
+			tree: setupNewTree(1_000_000),
+		},
+		{
+			keys: 10_000_000,
+			tree: setupNewTree(10_000_000),
+		},
+	}
+
+	for _, tc := range testCases {
+		start, end := testGenKey(tc.keys)
+		b.Run(fmt.Sprint(tc.keys), func(b *testing.B) {
+			var r int
+			for i := 0; i < b.N; i++ {
+				r, _ = tc.tree.AnyIntersection(start, end)
+			}
+
+			result = r
+		})
+	}
+}
+
+func BenchmarkSearchTree_Delete(b *testing.B) {
+	testCases := []struct {
+		keys int64
+		tree *SearchTree[int, int64]
+	}{
+		{
+			keys: 10_000,
+			tree: setupNewTree(10_000),
+		},
+		{
+			keys: 100_000,
+			tree: setupNewTree(100_000),
+		},
+		{
+			keys: 1_000_000,
+			tree: setupNewTree(1_000_000),
+		},
+		{
+			keys: 10_000_000,
+			tree: setupNewTree(10_000_000),
+		},
+	}
+
+	for _, tc := range testCases {
+		start, end := testGenKey(tc.keys)
+		b.Run(fmt.Sprint(tc.keys), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				err := tc.tree.Delete(start, end)
+				if err != nil {
+					b.Fatalf("tree.Delete(%v, %v, %v): got unexpected error %v", start, end, i, err)
+				}
+			}
+		})
 	}
 }
