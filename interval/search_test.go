@@ -2,6 +2,7 @@ package interval
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -140,7 +141,7 @@ func TestSearchTree_AnyIntersection_EmptyTree(t *testing.T) {
 
 	got, ok := st.AnyIntersection(1, 10)
 	if ok {
-		t.Errorf("st.AnyIntersect(1, 10): got unexpected interval %v", got)
+		t.Errorf("st.AnyIntersect(1, 10): got unexpected value %v", got)
 	}
 }
 
@@ -191,5 +192,57 @@ func TestSearchTree_Find(t *testing.T) {
 				t.Errorf("st.Find(%v, %v): got unexpected value %v; want %v", tc.start, tc.end, got, tc.wantVal)
 			}
 		})
+	}
+}
+
+func TestSearchTree_AllIntersections(t *testing.T) {
+	st := NewSearchTree[string](func(x, y int) int { return x - y })
+
+	st.Insert(17, 19, "node1")
+	st.Insert(5, 8, "node2")
+	st.Insert(21, 24, "node3")
+	st.Insert(4, 8, "node4")
+	st.Insert(15, 18, "node5")
+	st.Insert(7, 10, "node6")
+
+	testCases := []struct {
+		start    int
+		end      int
+		wantOK   bool
+		wantVals []string
+	}{
+		{
+			start:    9,
+			end:      16,
+			wantOK:   true,
+			wantVals: []string{"node6", "node5"},
+		},
+		{
+			start:  12,
+			end:    14,
+			wantOK: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprint(tc.start, tc.end), func(t *testing.T) {
+			got, ok := st.AllIntersections(tc.start, tc.end)
+			if ok != tc.wantOK {
+				t.Errorf("st.AllIntersections(%v, %v): got ok value %t; want %t", tc.start, tc.end, ok, tc.wantOK)
+			}
+
+			if !reflect.DeepEqual(got, tc.wantVals) {
+				t.Errorf("st.AllIntersections(%v, %v): got unexpected value %v; want %v", tc.start, tc.end, got, tc.wantVals)
+			}
+		})
+	}
+}
+
+func TestSearchTree_AllIntersections_EmptyTree(t *testing.T) {
+	st := NewSearchTree[any](func(x, y int) int { return x - y })
+
+	got, ok := st.AllIntersections(1, 10)
+	if ok {
+		t.Errorf("st.AllIntersections(1, 10): got unexpected value %v", got)
 	}
 }

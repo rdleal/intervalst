@@ -1,6 +1,34 @@
 package interval
 
-// AnyIntersection returns an interval value that intersects with the given start and end interval key values.
+// Find returns the value which interval key exactly match the given start and end interval key.
+// It returns false as the second return value if no matching interval key is found in the tree.
+func (st *SearchTree[V, T]) Find(start, end T) (V, bool) {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	var val V
+	var ok bool
+
+	if st.root == nil {
+		return val, ok
+	}
+
+	cur := st.root
+	for cur != nil {
+		switch {
+		case cur.interval.equal(start, end, st.cmp):
+			return cur.interval.val, true
+		case cur.interval.less(start, end, st.cmp):
+			cur = cur.right
+		default:
+			cur = cur.left
+		}
+	}
+
+	return val, ok
+}
+
+// AnyIntersection returns a value which interval key intersects with the given start and end interval key.
 // It returns false as the second return value if no intersection is found in the tree.
 func (st *SearchTree[V, T]) AnyIntersection(start, end T) (V, bool) {
 	st.mu.RLock()
@@ -31,30 +59,32 @@ func (st *SearchTree[V, T]) AnyIntersection(start, end T) (V, bool) {
 	return val, ok
 }
 
-// Find returns the exactly matching interval value for the given start and end interval key values.
-// It returns false as the second return value if no matching interval key is found in the tree.
-func (st *SearchTree[V, T]) Find(start, end T) (V, bool) {
+// AllIntersections returns a slice of values which interval key intersects with the given start and end interval key.
+// It returns false as the second return value if no intersection is found in the tree.
+func (st *SearchTree[V, T]) AllIntersections(start, end T) ([]V, bool) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	var val V
-	var ok bool
-
+	var vals []V
 	if st.root == nil {
-		return val, ok
+		return vals, false
 	}
 
-	cur := st.root
-	for cur != nil {
-		switch {
-		case cur.interval.equal(start, end, st.cmp):
-			return cur.interval.val, true
-		case cur.interval.less(start, end, st.cmp):
-			cur = cur.right
-		default:
-			cur = cur.left
-		}
+	st.searchInOrder(st.root, start, end, &vals)
+
+	return vals, len(vals) > 0
+}
+
+func (st *SearchTree[V, T]) searchInOrder(h *node[V, T], start, end T, res *[]V) {
+	if h.left != nil && st.cmp.gte(h.left.maxEnd, start) {
+		st.searchInOrder(h.left, start, end, res)
 	}
 
-	return val, ok
+	if h.interval.intersects(start, end, st.cmp) {
+		*res = append(*res, h.interval.val)
+	}
+
+	if h.right != nil && st.cmp.gte(h.right.maxEnd, start) {
+		st.searchInOrder(h.right, start, end, res)
+	}
 }

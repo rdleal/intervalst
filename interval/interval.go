@@ -60,7 +60,7 @@ func (it interval[V, T]) less(start, end T, cmp CmpFunc[T]) bool {
 }
 
 func (it interval[V, T]) intersects(start, end T, cmp CmpFunc[T]) bool {
-	return cmp.lte(start, it.end) && cmp.lte(it.end, end)
+	return cmp.lte(it.start, end) && cmp.lte(start, it.end)
 }
 
 func (it interval[V, T]) equal(start, end T, cmp CmpFunc[T]) bool {
