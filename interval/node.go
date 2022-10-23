@@ -46,3 +46,10 @@ func min[V, T any](h *node[V, T]) *node[V, T] {
 	}
 	return h
 }
+
+func max[V, T any](h *node[V, T]) *node[V, T] {
+	for h != nil && h.right != nil {
+		h = h.right
+	}
+	return h
+}

@@ -277,3 +277,34 @@ func TestSearchTree_Min_EmptyTree(t *testing.T) {
 		t.Errorf("st.Min(): got unexpected min value %v", got)
 	}
 }
+
+func TestSearchTree_Max(t *testing.T) {
+	st := NewSearchTree[string](func(x, y int) int { return x - y })
+
+	st.Insert(17, 19, "node1")
+	st.Insert(5, 8, "node2")
+	st.Insert(21, 24, "node3")
+	st.Insert(4, 8, "node4")
+	st.Insert(15, 18, "node5")
+	st.Insert(7, 10, "node6")
+
+	want := "node3"
+
+	got, ok := st.Max()
+	if !ok {
+		t.Error("st.Max(): got no min value")
+	}
+
+	if got != want {
+		t.Errorf("st.Max(): got unexpected value %v; want %v", got, want)
+	}
+}
+
+func TestSearchTree_Max_EmptyTree(t *testing.T) {
+	st := NewSearchTree[any](func(x, y int) int { return x - y })
+
+	got, ok := st.Max()
+	if ok {
+		t.Errorf("st.Max(): got unexpected min value %v", got)
+	}
+}

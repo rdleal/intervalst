@@ -105,3 +105,19 @@ func (st *SearchTree[V, T]) Min() (V, bool) {
 
 	return val, true
 }
+
+// Max returns the value which interval key is the maximum interval in the tree.
+// It returns false as the second return value if the tree is empty; otherwise, true.
+func (st *SearchTree[V, T]) Max() (V, bool) {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	var val V
+	if st.root == nil {
+		return val, false
+	}
+
+	val = max(st.root).interval.val
+
+	return val, true
+}
