@@ -1,7 +1,8 @@
 package interval
 
 // Find returns the value which interval key exactly match the given start and end interval key.
-// It returns false as the second return value if no matching interval key is found in the tree.
+// It returns true as the second return value if an exaclty matching interval key is found in the tree;
+// otherwise, false.
 func (st *SearchTree[V, T]) Find(start, end T) (V, bool) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
@@ -29,7 +30,7 @@ func (st *SearchTree[V, T]) Find(start, end T) (V, bool) {
 }
 
 // AnyIntersection returns a value which interval key intersects with the given start and end interval key.
-// It returns false as the second return value if no intersection is found in the tree.
+// It returns true as the second return value if any intersection is found in the tree; otherwise, false.
 func (st *SearchTree[V, T]) AnyIntersection(start, end T) (V, bool) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
@@ -60,7 +61,7 @@ func (st *SearchTree[V, T]) AnyIntersection(start, end T) (V, bool) {
 }
 
 // AllIntersections returns a slice of values which interval key intersects with the given start and end interval key.
-// It returns false as the second return value if no intersection is found in the tree.
+// It returns true as the second return value if any intersection is found in the tree; otherwise, false.
 func (st *SearchTree[V, T]) AllIntersections(start, end T) ([]V, bool) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
@@ -87,4 +88,20 @@ func (st *SearchTree[V, T]) searchInOrder(h *node[V, T], start, end T, res *[]V)
 	if h.right != nil && st.cmp.gte(h.right.maxEnd, start) {
 		st.searchInOrder(h.right, start, end, res)
 	}
+}
+
+// Min returns the value which interval key is the minimum interval in the tree.
+// It returns false as the second return value if the tree is empty; otherwise, true.
+func (st *SearchTree[V, T]) Min() (V, bool) {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	var val V
+	if st.root == nil {
+		return val, false
+	}
+
+	val = min(st.root).interval.val
+
+	return val, true
 }
