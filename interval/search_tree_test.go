@@ -17,6 +17,21 @@ func TestNewSearchTree_EmptyCmp(t *testing.T) {
 	NewSearchTree[string, int](nil)
 }
 
+func TestSearchTree_Height(t *testing.T) {
+	st := NewSearchTree[int](func(x, y int) int { return x - y })
+
+	for i := 0; i < 255; i++ {
+		err := st.Insert(i, i+1, i)
+		if err != nil {
+			t.Fatalf("Insert(%v, %v, %v): got unexpected error %v", i, i+1, i, err)
+		}
+	}
+
+	if h := st.Height(); h%2 != 0 {
+		t.Errorf("st.Height(): %v is not a power of 2", h)
+	}
+}
+
 func testGenKeys(n int64) [][]int64 {
 	rand.Seed(time.Now().UnixNano())
 	res := make([][]int64, n)

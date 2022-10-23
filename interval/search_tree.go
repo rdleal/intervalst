@@ -18,7 +18,10 @@
 // 	st := interval.NewSearchTree[string](cmpFn)
 package interval
 
-import "sync"
+import (
+	"math"
+	"sync"
+)
 
 // SearchTree is a generic type representing the Interval Search Tree
 // where V is a generic value type, and T is a generic interval key type.
@@ -40,6 +43,22 @@ func NewSearchTree[V, T any](cmp CmpFunc[T]) *SearchTree[V, T] {
 	return &SearchTree[V, T]{
 		cmp: cmp,
 	}
+}
+
+// Height returns the max depth of the tree.
+func (st *SearchTree[V, T]) Height() int {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	return int(st.height(st.root))
+}
+
+func (st *SearchTree[V, T]) height(h *node[V, T]) float64 {
+	if h == nil {
+		return 0
+	}
+
+	return 1 + math.Max(st.height(h.left), st.height(h.right))
 }
 
 func (st *SearchTree[V, T]) rotateLeft(h *node[V, T]) *node[V, T] {
