@@ -156,3 +156,38 @@ func (st *SearchTree[V, T]) Ceil(start, end T) (V, bool) {
 
 	return ceil.interval.val, true
 }
+
+// Floor returns a value which interval key is the greatest interval lesser than the given start and end interval.
+// It returns true as the second return value if there's a floor interval key for the given start and end interval
+// in the tree; otherwise, false.
+func (st *SearchTree[V, T]) Floor(start, end T) (V, bool) {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	var val V
+	if st.root == nil {
+		return val, false
+	}
+
+	var floor *node[V, T]
+
+	cur := st.root
+	for cur != nil {
+		if cur.interval.equal(start, end, st.cmp) {
+			return cur.interval.val, true
+		}
+
+		if cur.interval.less(start, end, st.cmp) {
+			floor = cur
+			cur = cur.right
+		} else {
+			cur = cur.left
+		}
+	}
+
+	if floor == nil {
+		return val, false
+	}
+
+	return floor.interval.val, true
+}
