@@ -34,3 +34,39 @@ func Example() {
 	// value7 true
 	// false
 }
+
+func ExampleSearchTree_Ceil() {
+	cmpFn := func(x, y int) int { return x - y }
+
+	st := interval.NewSearchTree[string](cmpFn)
+
+	st.Insert(17, 19, "value1")
+	st.Insert(5, 8, "value2")
+	st.Insert(21, 24, "value3")
+	st.Insert(4, 8, "value4")
+	st.Insert(15, 18, "value5")
+	st.Insert(7, 10, "value6")
+
+	val, ok := st.Ceil(9, 16)
+	fmt.Println(val, ok)
+	// Output:
+	// value5 true
+}
+
+func ExampleSearchTree_Floor() {
+	cmpFn := func(x, y int) int { return x - y }
+
+	st := interval.NewSearchTree[string](cmpFn)
+
+	st.Insert(17, 19, "value1")
+	st.Insert(5, 8, "value2")
+	st.Insert(21, 24, "value3")
+	st.Insert(4, 8, "value4")
+	st.Insert(15, 18, "value5")
+	st.Insert(7, 10, "value6")
+
+	val, ok := st.Floor(9, 16)
+	fmt.Println(val, ok)
+	// Output:
+	// value6 true
+}
