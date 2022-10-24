@@ -308,3 +308,68 @@ func TestSearchTree_Max_EmptyTree(t *testing.T) {
 		t.Errorf("st.Max(): got unexpected min value %v", got)
 	}
 }
+
+func TestSearchTree_Ceil(t *testing.T) {
+	st := NewSearchTree[string](func(x, y int) int { return x - y })
+
+	st.Insert(17, 19, "node1")
+	st.Insert(5, 8, "node2")
+	st.Insert(21, 24, "node3")
+	st.Insert(4, 8, "node4")
+	st.Insert(15, 18, "node5")
+	st.Insert(7, 10, "node6")
+
+	testCases := []struct {
+		start   int
+		end     int
+		wantOK  bool
+		wantVal string
+	}{
+		{
+			start:   9,
+			end:     16,
+			wantOK:  true,
+			wantVal: "node5",
+		},
+		{
+			start:   18,
+			end:     20,
+			wantOK:  true,
+			wantVal: "node3",
+		},
+		{
+			start:   7,
+			end:     10,
+			wantOK:  true,
+			wantVal: "node6",
+		},
+		{
+			start:  25,
+			end:    30,
+			wantOK: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprint(tc.start, tc.end), func(t *testing.T) {
+			got, ok := st.Ceil(tc.start, tc.end)
+			if ok != tc.wantOK {
+				t.Errorf("st.Ceil(%v, %v): got ok value %t; want %t", tc.start, tc.end, ok, tc.wantOK)
+			}
+
+			if got != tc.wantVal {
+				t.Errorf("st.Ceil(%v, %v): got unexpected value %v; want %v", tc.start, tc.end, got, tc.wantVal)
+			}
+		})
+	}
+}
+
+func TestSearchTree_Ceil_EmptyTree(t *testing.T) {
+	st := NewSearchTree[any](func(x, y int) int { return x - y })
+
+	start, end := 10, 15
+	got, ok := st.Ceil(start, end)
+	if ok {
+		t.Errorf("st.Ceil(%v, %v): got unexpected min value %v", start, end, got)
+	}
+}
