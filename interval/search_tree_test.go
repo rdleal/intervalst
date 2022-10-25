@@ -32,6 +32,50 @@ func TestSearchTree_Height(t *testing.T) {
 	}
 }
 
+func TestSearchTree_Size(t *testing.T) {
+	st := NewSearchTree[int](func(x, y int) int { return x - y })
+
+	s := 20
+	for i := 0; i < s; i++ {
+		err := st.Insert(i, i+1, i)
+		if err != nil {
+			t.Fatalf("Insert(%v, %v, %v): got unexpected error %v", i, i+1, i, err)
+		}
+	}
+
+	if got, want := st.Size(), s; got != want {
+		t.Fatalf("st.Size(): got unexpected size %d; want %d", got, want)
+	}
+
+	err := st.Delete(4, 5)
+	if err != nil {
+		t.Fatalf("st.Delete(4, 5): Got unexpected error %v", err)
+	}
+
+	if got, want := st.Size(), s-1; got != want {
+		t.Fatalf("st.Size(): got unexpected size %d; want %d", got, want)
+	}
+
+	err = st.Delete(15, 16)
+	if err != nil {
+		t.Fatalf("st.Delete(15, 16) Got unexpected error %v", err)
+	}
+
+	if got, want := st.Size(), s-2; got != want {
+		t.Fatalf("st.Size(): got unexpected size %d; want %d", got, want)
+	}
+
+	// Already deleted, it should not affect the tree size.
+	err = st.Delete(4, 5)
+	if err != nil {
+		t.Fatalf("st.Delete(4, 5): Got unexpected error %v", err)
+	}
+
+	if got, want := st.Size(), s-2; got != want {
+		t.Fatalf("st.Size(): got unexpected size %d; want %d", got, want)
+	}
+}
+
 func testGenKeys(n int64) [][]int64 {
 	rand.Seed(time.Now().UnixNano())
 	res := make([][]int64, n)

@@ -13,13 +13,15 @@ type node[V, T any] struct {
 	right    *node[V, T]
 	left     *node[V, T]
 	color    color
+	size     int
 }
 
-func newNode[V, T any](intervl interval[V, T], c color) *node[V, T] {
+func newNode[V, T any](intervl interval[V, T], c color, sz int) *node[V, T] {
 	return &node[V, T]{
 		interval: intervl,
 		maxEnd:   intervl.end,
 		color:    c,
+		size:     sz,
 	}
 }
 
@@ -52,4 +54,15 @@ func max[V, T any](h *node[V, T]) *node[V, T] {
 		h = h.right
 	}
 	return h
+}
+
+func updateSize[V, T any](h *node[V, T]) {
+	h.size = 1 + size(h.left) + size(h.right)
+}
+
+func size[V, T any](h *node[V, T]) int {
+	if h == nil {
+		return 0
+	}
+	return h.size
 }

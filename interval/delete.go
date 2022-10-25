@@ -56,6 +56,8 @@ func (st *SearchTree[V, T]) delete(h *node[V, T], intervl interval[V, T]) *node[
 		}
 	}
 
+	updateSize(h)
+
 	return st.fixUp(h)
 }
 
@@ -69,6 +71,8 @@ func (st *SearchTree[V, T]) deleteMin(h *node[V, T]) *node[V, T] {
 	}
 
 	h.left = st.deleteMin(h.left)
+
+	updateSize(h)
 
 	return st.fixUp(h)
 }

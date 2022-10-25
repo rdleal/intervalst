@@ -26,7 +26,7 @@ func (st *SearchTree[V, T]) Insert(start, end T, val V) error {
 
 func (st *SearchTree[V, T]) insert(h *node[V, T], intervl interval[V, T]) *node[V, T] {
 	if h == nil {
-		return newNode(intervl, red)
+		return newNode(intervl, red, 1)
 	}
 
 	switch {
@@ -41,6 +41,8 @@ func (st *SearchTree[V, T]) insert(h *node[V, T], intervl interval[V, T]) *node[
 	if st.cmp.gt(intervl.end, h.maxEnd) {
 		h.maxEnd = intervl.end
 	}
+
+	updateSize(h)
 
 	return st.balanceNode(h)
 }

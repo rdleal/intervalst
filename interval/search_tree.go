@@ -61,6 +61,11 @@ func (st *SearchTree[V, T]) height(h *node[V, T]) float64 {
 	return 1 + math.Max(st.height(h.left), st.height(h.right))
 }
 
+// Size returns the number of intervals in the tree.
+func (st *SearchTree[V, T]) Size() int {
+	return size(st.root)
+}
+
 func (st *SearchTree[V, T]) rotateLeft(h *node[V, T]) *node[V, T] {
 	x := h.right
 	h.right = x.left
@@ -69,6 +74,8 @@ func (st *SearchTree[V, T]) rotateLeft(h *node[V, T]) *node[V, T] {
 	x.maxEnd = h.maxEnd
 	h.color = red
 
+	updateSize(h)
+	updateSize(x)
 	st.updateMaxEnd(h)
 	return x
 }
@@ -81,6 +88,8 @@ func (st *SearchTree[V, T]) rotateRight(h *node[V, T]) *node[V, T] {
 	x.maxEnd = h.maxEnd
 	h.color = red
 
+	updateSize(h)
+	updateSize(x)
 	st.updateMaxEnd(h)
 	return x
 }
