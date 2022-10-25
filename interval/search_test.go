@@ -438,3 +438,50 @@ func TestSearchTree_Floor_EmptyTree(t *testing.T) {
 		t.Errorf("st.Floor(%v, %v): got unexpected floor value %v", start, end, got)
 	}
 }
+
+func TestSearchTree_Rank(t *testing.T) {
+	st := NewSearchTree[string](func(x, y int) int { return x - y })
+
+	st.Insert(17, 19, "node1")
+	st.Insert(5, 8, "node2")
+	st.Insert(21, 24, "node3")
+	st.Insert(4, 8, "node4")
+	st.Insert(15, 18, "node5")
+	st.Insert(7, 10, "node6")
+
+	testCases := []struct {
+		start int
+		end   int
+		want  int
+	}{
+		{
+			start: 9,
+			end:   16,
+			want:  3,
+		},
+		{
+			start: 18,
+			end:   20,
+			want:  5,
+		},
+		{
+			start: 5,
+			end:   8,
+			want:  1,
+		},
+		{
+			start: 2,
+			end:   4,
+			want:  0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprint(tc.start, tc.end), func(t *testing.T) {
+			got := st.Rank(tc.start, tc.end)
+			if got != tc.want {
+				t.Errorf("st.Rank(%v, %v): got unexpected value %v; want %v", tc.start, tc.end, got, tc.want)
+			}
+		})
+	}
+}
