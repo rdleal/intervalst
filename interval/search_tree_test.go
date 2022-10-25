@@ -76,6 +76,24 @@ func TestSearchTree_Size(t *testing.T) {
 	}
 }
 
+func TestSearchTree_IsEmpty(t *testing.T) {
+	t.Run("EmptyTree", func(t *testing.T) {
+		st := NewSearchTree[int](func(x, y int) int { return x - y })
+
+		if got, want := st.IsEmpty(), true; got != want {
+			t.Errorf("st.IsEmpty(): got unexpected value %t; want %t", got, want)
+		}
+	})
+	t.Run("NotEmptyTree", func(t *testing.T) {
+		st := NewSearchTree[int](func(x, y int) int { return x - y })
+		st.Insert(10, 11, 0)
+
+		if got, want := st.IsEmpty(), false; got != want {
+			t.Errorf("st.IsEmpty(): got unexpected value %t; want %t", got, want)
+		}
+	})
+}
+
 func testGenKeys(n int64) [][]int64 {
 	rand.Seed(time.Now().UnixNano())
 	res := make([][]int64, n)

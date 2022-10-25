@@ -66,6 +66,11 @@ func (st *SearchTree[V, T]) Size() int {
 	return size(st.root)
 }
 
+// IsEmpty returns true if the tree is empty; otherwise, false.
+func (st *SearchTree[V, T]) IsEmpty() bool {
+	return st.Size() == 0
+}
+
 func (st *SearchTree[V, T]) rotateLeft(h *node[V, T]) *node[V, T] {
 	x := h.right
 	h.right = x.left
