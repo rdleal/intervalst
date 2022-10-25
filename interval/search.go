@@ -211,3 +211,26 @@ func (st *SearchTree[V, T]) Rank(start, end T) int {
 
 	return rank
 }
+
+// Select returns the value which interval is the kth smallest interval in the tree.
+// It returns false if k is not between 0 and N-1, where N is the number of intervals
+// in the tree; otherwise, true.
+func (st *SearchTree[V, T]) Select(k int) (V, bool) {
+	var val V
+
+	cur := st.root
+	for cur != nil {
+		t := size(cur.left)
+		switch {
+		case t > k:
+			cur = cur.left
+		case t < k:
+			cur = cur.right
+			k = k - t - 1
+		default:
+			return cur.interval.val, true
+		}
+	}
+
+	return val, false
+}

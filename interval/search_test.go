@@ -485,3 +485,47 @@ func TestSearchTree_Rank(t *testing.T) {
 		})
 	}
 }
+
+func TestSearchTree_Select(t *testing.T) {
+	st := NewSearchTree[string](func(x, y int) int { return x - y })
+
+	st.Insert(17, 19, "node1")
+	st.Insert(5, 8, "node2")
+	st.Insert(21, 24, "node3")
+	st.Insert(4, 8, "node4")
+	st.Insert(15, 18, "node5")
+	st.Insert(7, 10, "node6")
+
+	testCases := []struct {
+		k       int
+		wantOK  bool
+		wantVal string
+	}{
+		{
+			k:       3,
+			wantOK:  true,
+			wantVal: "node5",
+		},
+		{
+			k:      -1,
+			wantOK: false,
+		},
+		{
+			k:      8,
+			wantOK: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprint(tc.k), func(t *testing.T) {
+			got, ok := st.Select(tc.k)
+			if ok != tc.wantOK {
+				t.Errorf("st.Select(%v): got ok value %t; want %t", tc.k, ok, tc.wantOK)
+			}
+
+			if got != tc.wantVal {
+				t.Errorf("st.Select(%v): got unexpected value %v; want %v", tc.k, got, tc.wantVal)
+			}
+		})
+	}
+}
