@@ -192,7 +192,7 @@ func (st *SearchTree[V, T]) Floor(start, end T) (V, bool) {
 	return floor.interval.val, true
 }
 
-// Rank returns the number of intervals stricly less than the given start and end interval.
+// Rank returns the number of intervals strictly less than the given start and end interval.
 func (st *SearchTree[V, T]) Rank(start, end T) int {
 	var rank int
 	cur := st.root
