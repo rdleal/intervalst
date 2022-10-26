@@ -73,7 +73,7 @@ $ go test -v -cover -race ./...
 
 Running benchmarks:
 ```sh
-$ go test -run=^$ -bench=. -benchtime=20s -benchmen ./...
+$ cd interval && go test -run='^$' -bench=. -benchtime=20s -benchmem
 ```
 
 ## License
