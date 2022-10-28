@@ -91,3 +91,38 @@ func (st *SearchTree[V, T]) DeleteMin() {
 		st.root.color = black
 	}
 }
+
+// DeleteMax removes the largest interval key and its associated value from the tree.
+func (st *SearchTree[V, T]) DeleteMax() {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
+	if st.root == nil {
+		return
+	}
+
+	st.root = st.deleteMax(st.root)
+	if st.root != nil {
+		st.root.color = black
+	}
+}
+
+func (st *SearchTree[V, T]) deleteMax(h *node[V, T]) *node[V, T] {
+	if isRed(h.left) {
+		h = st.rotateRight(h)
+	}
+
+	if h.right == nil {
+		return nil
+	}
+
+	if !isRed(h.right) && !isRed(h.right.left) {
+		h = st.moveRedRight(h)
+	}
+
+	h.right = st.deleteMax(h.right)
+
+	updateSize(h)
+
+	return st.fixUp(h)
+}

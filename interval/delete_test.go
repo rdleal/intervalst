@@ -113,3 +113,35 @@ func TestSearchTree_DeleteMin(t *testing.T) {
 		t.Errorf("st.Size(): got size %d; want %d", got, want)
 	}
 }
+
+func TestSearchTree_DeleteMax(t *testing.T) {
+	st := NewSearchTree[int](func(x, y int) int { return x - y })
+
+	st.Insert(22, 25, 1)
+	st.Insert(24, 26, 2)
+	st.Insert(23, 25, 3)
+
+	st.DeleteMax()
+
+	if v, ok := st.Find(24, 26); ok {
+		t.Errorf("Find(24, 26): got unexpected removed value: %v", v)
+	}
+
+	st.DeleteMax()
+
+	if v, ok := st.Find(23, 25); ok {
+		t.Errorf("Find(23, 25): got unexpected removed value: %v", v)
+	}
+
+	st.DeleteMax()
+
+	if v, ok := st.Find(22, 25); ok {
+		t.Errorf("Find(22, 25): got unexpected removed value: %v", v)
+	}
+
+	st.DeleteMax()
+
+	if got, want := st.Size(), 0; got != want {
+		t.Errorf("st.Size(): got size %d; want %d", got, want)
+	}
+}
