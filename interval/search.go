@@ -194,6 +194,9 @@ func (st *SearchTree[V, T]) Floor(start, end T) (V, bool) {
 
 // Rank returns the number of intervals strictly less than the given start and end interval.
 func (st *SearchTree[V, T]) Rank(start, end T) int {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
 	var rank int
 	cur := st.root
 
@@ -216,6 +219,9 @@ func (st *SearchTree[V, T]) Rank(start, end T) int {
 // It returns false if k is not between 0 and N-1, where N is the number of interval keys
 // in the tree; otherwise, true.
 func (st *SearchTree[V, T]) Select(k int) (V, bool) {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
 	var val V
 
 	cur := st.root
