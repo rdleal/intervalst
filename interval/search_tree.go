@@ -84,9 +84,9 @@ func (st *SearchTree[V, T]) rotateLeft(h *node[V, T]) *node[V, T] {
 	x.color = h.color
 	x.maxEnd = h.maxEnd
 	h.color = red
+	x.size = h.size
 
 	updateSize(h)
-	updateSize(x)
 	st.updateMaxEnd(h)
 	return x
 }
@@ -98,9 +98,9 @@ func (st *SearchTree[V, T]) rotateRight(h *node[V, T]) *node[V, T] {
 	x.color = h.color
 	x.maxEnd = h.maxEnd
 	h.color = red
+	x.size = h.size
 
 	updateSize(h)
-	updateSize(x)
 	st.updateMaxEnd(h)
 	return x
 }
