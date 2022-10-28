@@ -88,3 +88,28 @@ func TestSearchTree_Delete_Error(t *testing.T) {
 		}
 	})
 }
+
+func TestSearchTree_DeleteMin(t *testing.T) {
+	st := NewSearchTree[int](func(x, y int) int { return x - y })
+
+	st.Insert(17, 19, 0)
+	st.Insert(5, 8, 1)
+
+	st.DeleteMin()
+
+	if v, ok := st.Find(5, 8); ok {
+		t.Errorf("Find(5, 8): got unexpected removed value: %v", v)
+	}
+
+	st.DeleteMin()
+
+	if v, ok := st.Find(17, 19); ok {
+		t.Errorf("Find(17, 19): got unexpected removed value: %v", v)
+	}
+
+	st.DeleteMin()
+
+	if got, want := st.Size(), 0; got != want {
+		t.Errorf("st.Size(): got size %d; want %d", got, want)
+	}
+}

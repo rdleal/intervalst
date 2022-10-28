@@ -76,3 +76,18 @@ func (st *SearchTree[V, T]) deleteMin(h *node[V, T]) *node[V, T] {
 
 	return st.fixUp(h)
 }
+
+// DeleteMin removes the smallest interval key and its associated value from the tree.
+func (st *SearchTree[V, T]) DeleteMin() {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
+	if st.root == nil {
+		return
+	}
+
+	st.root = st.deleteMin(st.root)
+	if st.root != nil {
+		st.root.color = black
+	}
+}
