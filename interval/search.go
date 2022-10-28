@@ -1,6 +1,6 @@
 package interval
 
-// Find returns the value which interval key exactly match the given start and end interval key.
+// Find returns the value which interval key exactly match the given start and end interval.
 // It returns true as the second return value if an exaclty matching interval key is found in the tree;
 // otherwise, false.
 func (st *SearchTree[V, T]) Find(start, end T) (V, bool) {
@@ -29,7 +29,7 @@ func (st *SearchTree[V, T]) Find(start, end T) (V, bool) {
 	return val, ok
 }
 
-// AnyIntersection returns a value which interval key intersects with the given start and end interval key.
+// AnyIntersection returns a value which interval key intersects with the given start and end interval.
 // It returns true as the second return value if any intersection is found in the tree; otherwise, false.
 func (st *SearchTree[V, T]) AnyIntersection(start, end T) (V, bool) {
 	st.mu.RLock()
@@ -60,7 +60,7 @@ func (st *SearchTree[V, T]) AnyIntersection(start, end T) (V, bool) {
 	return val, ok
 }
 
-// AllIntersections returns a slice of values which interval key intersects with the given start and end interval key.
+// AllIntersections returns a slice of values which interval key intersects with the given start and end interval.
 // It returns true as the second return value if any intersection is found in the tree; otherwise, false.
 func (st *SearchTree[V, T]) AllIntersections(start, end T) ([]V, bool) {
 	st.mu.RLock()
@@ -90,7 +90,7 @@ func (st *SearchTree[V, T]) searchInOrder(h *node[V, T], start, end T, res *[]V)
 	}
 }
 
-// Min returns the value which interval key is the minimum interval in the tree.
+// Min returns the value which interval key is the minimum interval key in the tree.
 // It returns false as the second return value if the tree is empty; otherwise, true.
 func (st *SearchTree[V, T]) Min() (V, bool) {
 	st.mu.RLock()
@@ -122,7 +122,7 @@ func (st *SearchTree[V, T]) Max() (V, bool) {
 	return val, true
 }
 
-// Ceil returns a value which interval key is the smallest interval greater than the given start and end interval.
+// Ceil returns a value which interval key is the smallest interval key greater than the given start and end interval.
 // It returns true as the second return value if there's a ceiling interval key for the given start and end interval
 // in the tree; otherwise, false.
 func (st *SearchTree[V, T]) Ceil(start, end T) (V, bool) {
@@ -157,7 +157,7 @@ func (st *SearchTree[V, T]) Ceil(start, end T) (V, bool) {
 	return ceil.interval.val, true
 }
 
-// Floor returns a value which interval key is the greatest interval lesser than the given start and end interval.
+// Floor returns a value which interval key is the greatest interval key lesser than the given start and end interval.
 // It returns true as the second return value if there's a floor interval key for the given start and end interval
 // in the tree; otherwise, false.
 func (st *SearchTree[V, T]) Floor(start, end T) (V, bool) {
@@ -212,8 +212,8 @@ func (st *SearchTree[V, T]) Rank(start, end T) int {
 	return rank
 }
 
-// Select returns the value which interval is the kth smallest interval in the tree.
-// It returns false if k is not between 0 and N-1, where N is the number of intervals
+// Select returns the value which interval key is the kth smallest interval key in the tree.
+// It returns false if k is not between 0 and N-1, where N is the number of interval keys
 // in the tree; otherwise, true.
 func (st *SearchTree[V, T]) Select(k int) (V, bool) {
 	var val V

@@ -1,7 +1,7 @@
 package interval
 
 // Insert inserts the given val with the given start and end as the interval key.
-// If there's already an entry for the given start and end interval key,
+// If there's already an interval key entry with the given start and end interval,
 // it will be updated with the given val.
 // Insert returns an error if the given end is less than or equal to the given start value.
 func (st *SearchTree[V, T]) Insert(start, end T, val V) error {
