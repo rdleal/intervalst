@@ -63,12 +63,18 @@ func (st *SearchTree[V, T]) height(h *node[V, T]) float64 {
 
 // Size returns the number of intervals in the tree.
 func (st *SearchTree[V, T]) Size() int {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
 	return size(st.root)
 }
 
 // IsEmpty returns true if the tree is empty; otherwise, false.
 func (st *SearchTree[V, T]) IsEmpty() bool {
-	return st.Size() == 0
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	return st.root == nil
 }
 
 func (st *SearchTree[V, T]) rotateLeft(h *node[V, T]) *node[V, T] {
