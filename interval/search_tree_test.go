@@ -125,6 +125,7 @@ func isBalanced[V, T any](h *node[V, T], black int) bool {
 }
 
 // Tests if SearchTree is a 2-3 tree as left-leaning red black tree has a 1-1 correspondence to a 2-3 tree.
+// For more on that, see https://sedgewick.io/wp-content/themes/sedgewick/papers/2008LLRB.pdf
 func mustBeTwoThreeTree[V, T any](t *testing.T, st *SearchTree[V, T]) {
 	if !isTwoThreeTree(st.root) {
 		t.Fatalf("Interval Tree is not a 2-3 tree")
