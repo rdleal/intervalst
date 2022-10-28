@@ -97,6 +97,7 @@ func TestSearchTree_IsEmpty(t *testing.T) {
 func mustBeValidTree[V, T any](t *testing.T, st *SearchTree[V, T]) {
 	mustBeBalanced(t, st)
 	mustBeTwoThreeTree(t, st)
+	mustHaveConsistentSize(t, st)
 }
 
 // Tests if all paths from root to leaf have the same number of blacks edges.
@@ -146,6 +147,25 @@ func isTwoThreeTree[V, T any](h *node[V, T]) bool {
 	}
 
 	return isTwoThreeTree(h.left) && isTwoThreeTree(h.right)
+}
+
+// Tests if the SearchTree nodes have consistent size.
+func mustHaveConsistentSize[V, T any](t *testing.T, st *SearchTree[V, T]) {
+	if !isSizeConsistent(st.root) {
+		t.Fatalf("Interval Tree size is not consistent")
+	}
+}
+
+func isSizeConsistent[V, T any](h *node[V, T]) bool {
+	if h == nil {
+		return true
+	}
+
+	if h.size != size(h.left)+size(h.right)+1 {
+		return false
+	}
+
+	return isSizeConsistent(h.left) && isSizeConsistent(h.right)
 }
 
 func testGenKeys(n int64) [][]int64 {
