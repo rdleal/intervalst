@@ -33,7 +33,7 @@ func (st *SearchTree[V, T]) delete(h *node[V, T], intervl interval[V, T]) *node[
 	}
 
 	if intervl.less(h.interval.start, h.interval.end, st.cmp) {
-		if isRed(h.left) && !isRed(h.left.left) {
+		if h.left != nil && !isRed(h.left) && !isRed(h.left.left) {
 			h = st.moveRedLeft(h)
 		}
 		h.left = st.delete(h.left, intervl)
@@ -44,7 +44,7 @@ func (st *SearchTree[V, T]) delete(h *node[V, T], intervl interval[V, T]) *node[
 		if h.interval.equal(intervl.start, intervl.end, st.cmp) && h.right == nil {
 			return nil
 		}
-		if !isRed(h.right) && h.right != nil && !isRed(h.right.left) {
+		if h.right != nil && !isRed(h.right) && !isRed(h.right.left) {
 			h = st.moveRedRight(h)
 		}
 		if h.interval.equal(intervl.start, intervl.end, st.cmp) {

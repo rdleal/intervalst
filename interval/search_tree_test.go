@@ -94,6 +94,59 @@ func TestSearchTree_IsEmpty(t *testing.T) {
 	})
 }
 
+func mustBeValidTree[V, T any](t *testing.T, st *SearchTree[V, T]) {
+	mustBeBalanced(t, st)
+	mustBeTwoThreeTree(t, st)
+}
+
+// Tests if all paths from root to leaf have the same number of blacks edges.
+func mustBeBalanced[V, T any](t *testing.T, st *SearchTree[V, T]) {
+	var black int
+	for x := st.root; x != nil; x = x.left {
+		if !isRed(x) {
+			black++
+		}
+	}
+
+	if !isBalanced(st.root, black) {
+		t.Fatal("Interval Tree is not balanced")
+	}
+}
+
+func isBalanced[V, T any](h *node[V, T], black int) bool {
+	if h == nil {
+		return black == 0
+	}
+	if !isRed(h) {
+		black--
+	}
+
+	return isBalanced(h.left, black) && isBalanced(h.right, black)
+}
+
+// Tests if SearchTree is a 2-3 tree as left-leaning red black tree has a 1-1 correspondence to a 2-3 tree.
+func mustBeTwoThreeTree[V, T any](t *testing.T, st *SearchTree[V, T]) {
+	if !isTwoThreeTree(st.root) {
+		t.Fatalf("Interval Tree is not a 2-3 tree")
+	}
+}
+
+func isTwoThreeTree[V, T any](h *node[V, T]) bool {
+	if h == nil {
+		return true
+	}
+
+	if isRed(h.right) {
+		return false
+	}
+
+	if isRed(h.left) && isRed(h.right) {
+		return false
+	}
+
+	return isTwoThreeTree(h.left) && isTwoThreeTree(h.right)
+}
+
 func testGenKeys(n int64) [][]int64 {
 	rand.Seed(time.Now().UnixNano())
 	res := make([][]int64, n)

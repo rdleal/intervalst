@@ -7,6 +7,7 @@ import (
 
 func TestSearchTree_Insert_UpdateValue(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
+	defer mustBeValidTree(t, st)
 
 	st.Insert(17, 19, "value")
 	st.Insert(17, 19, "another value")
