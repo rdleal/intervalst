@@ -44,9 +44,9 @@ Searching for any intersection:
 ```go
 start := time.Now()
 end := start.Add(2*time.Hour)
-val, err := st.AnyIntersection(start, end)
-if err != nil {
-        // error handling...
+val, ok := st.AnyIntersection(start, end)
+if !ok {
+        // no intersection found for start and end...
 }
 ```
 
