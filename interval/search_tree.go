@@ -19,7 +19,6 @@
 package interval
 
 import (
-	"math"
 	"sync"
 )
 
@@ -50,15 +49,7 @@ func (st *SearchTree[V, T]) Height() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return int(st.height(st.root))
-}
-
-func (st *SearchTree[V, T]) height(h *node[V, T]) float64 {
-	if h == nil {
-		return 0
-	}
-
-	return 1 + math.Max(st.height(h.left), st.height(h.right))
+	return int(height(st.root))
 }
 
 // Size returns the number of intervals in the tree.

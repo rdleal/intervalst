@@ -1,5 +1,7 @@
 package interval
 
+import "math"
+
 type color bool
 
 const (
@@ -58,6 +60,14 @@ func max[V, T any](h *node[V, T]) *node[V, T] {
 
 func updateSize[V, T any](h *node[V, T]) {
 	h.size = 1 + size(h.left) + size(h.right)
+}
+
+func height[V, T any](h *node[V, T]) float64 {
+	if h == nil {
+		return 0
+	}
+
+	return 1 + math.Max(height(h.left), height(h.right))
 }
 
 func size[V, T any](h *node[V, T]) int {
