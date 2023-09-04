@@ -44,5 +44,5 @@ func (st *SearchTree[V, T]) insert(h *node[V, T], intervl interval[V, T]) *node[
 
 	updateSize(h)
 
-	return st.balanceNode(h)
+	return balanceNode(h, st.cmp)
 }

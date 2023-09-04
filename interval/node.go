@@ -66,3 +66,83 @@ func size[V, T any](h *node[V, T]) int {
 	}
 	return h.size
 }
+
+func updateMaxEnd[V, T any](h *node[V, T], cmp CmpFunc[T]) {
+	h.maxEnd = h.interval.end
+	if h.left != nil && cmp.gt(h.left.maxEnd, h.maxEnd) {
+		h.maxEnd = h.left.maxEnd
+	}
+
+	if h.right != nil && cmp.gt(h.right.maxEnd, h.maxEnd) {
+		h.maxEnd = h.right.maxEnd
+	}
+}
+
+func rotateLeft[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
+	x := h.right
+	h.right = x.left
+	x.left = h
+	x.color = h.color
+	x.maxEnd = h.maxEnd
+	h.color = red
+	x.size = h.size
+
+	updateSize(h)
+	updateMaxEnd(h, cmp)
+	return x
+}
+
+func rotateRight[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
+	x := h.left
+	h.left = x.right
+	x.right = h
+	x.color = h.color
+	x.maxEnd = h.maxEnd
+	h.color = red
+	x.size = h.size
+
+	updateSize(h)
+	updateMaxEnd(h, cmp)
+	return x
+}
+
+func balanceNode[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
+	if isRed(h.right) && !isRed(h.left) {
+		h = rotateLeft(h, cmp)
+	}
+
+	if isRed(h.left) && isRed(h.left.left) {
+		h = rotateRight(h, cmp)
+	}
+
+	if isRed(h.left) && isRed(h.right) {
+		flipColors(h)
+	}
+
+	return h
+}
+
+func moveRedLeft[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
+	flipColors(h)
+	if h.right != nil && isRed(h.right.left) {
+		h.right = rotateRight(h.right, cmp)
+		h = rotateLeft(h, cmp)
+		flipColors(h)
+	}
+	return h
+}
+
+func moveRedRight[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
+	flipColors(h)
+	if h.left != nil && isRed(h.left.left) {
+		h = rotateRight(h, cmp)
+		flipColors(h)
+	}
+	return h
+}
+
+func fixUp[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
+	updateMaxEnd(h, cmp)
+
+	return balanceNode(h, cmp)
+}
