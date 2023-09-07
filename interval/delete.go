@@ -19,7 +19,7 @@ func (st *SearchTree[V, T]) Delete(start, end T) error {
 		return newInvalidIntervalError(intervl)
 	}
 
-	st.root = st.delete(st.root, intervl)
+	st.root = delete(st.root, intervl, st.cmp)
 	if st.root != nil {
 		st.root.color = black
 	}
@@ -27,54 +27,54 @@ func (st *SearchTree[V, T]) Delete(start, end T) error {
 	return nil
 }
 
-func (st *SearchTree[V, T]) delete(h *node[V, T], intervl interval[V, T]) *node[V, T] {
+func delete[V, T any](h *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *node[V, T] {
 	if h == nil {
 		return nil
 	}
 
-	if intervl.less(h.interval.start, h.interval.end, st.cmp) {
+	if intervl.less(h.interval.start, h.interval.end, cmp) {
 		if h.left != nil && !isRed(h.left) && !isRed(h.left.left) {
-			h = moveRedLeft(h, st.cmp)
+			h = moveRedLeft(h, cmp)
 		}
-		h.left = st.delete(h.left, intervl)
+		h.left = delete(h.left, intervl, cmp)
 	} else {
 		if isRed(h.left) {
-			h = rotateRight(h, st.cmp)
+			h = rotateRight(h, cmp)
 		}
-		if h.interval.equal(intervl.start, intervl.end, st.cmp) && h.right == nil {
+		if h.interval.equal(intervl.start, intervl.end, cmp) && h.right == nil {
 			return nil
 		}
 		if h.right != nil && !isRed(h.right) && !isRed(h.right.left) {
-			h = moveRedRight(h, st.cmp)
+			h = moveRedRight(h, cmp)
 		}
-		if h.interval.equal(intervl.start, intervl.end, st.cmp) {
+		if h.interval.equal(intervl.start, intervl.end, cmp) {
 			minNode := min(h.right)
 			h.interval = minNode.interval
-			h.right = st.deleteMin(h.right)
+			h.right = deleteMin(h.right, cmp)
 		} else {
-			h.right = st.delete(h.right, intervl)
+			h.right = delete(h.right, intervl, cmp)
 		}
 	}
 
 	updateSize(h)
 
-	return fixUp(h, st.cmp)
+	return fixUp(h, cmp)
 }
 
-func (st *SearchTree[V, T]) deleteMin(h *node[V, T]) *node[V, T] {
+func deleteMin[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 	if h.left == nil {
 		return nil
 	}
 
 	if !isRed(h.left) && !isRed(h.left.left) {
-		h = moveRedLeft(h, st.cmp)
+		h = moveRedLeft(h, cmp)
 	}
 
-	h.left = st.deleteMin(h.left)
+	h.left = deleteMin(h.left, cmp)
 
 	updateSize(h)
 
-	return fixUp(h, st.cmp)
+	return fixUp(h, cmp)
 }
 
 // DeleteMin removes the smallest interval key and its associated value from the tree.
@@ -86,7 +86,7 @@ func (st *SearchTree[V, T]) DeleteMin() {
 		return
 	}
 
-	st.root = st.deleteMin(st.root)
+	st.root = deleteMin(st.root, st.cmp)
 	if st.root != nil {
 		st.root.color = black
 	}
@@ -101,15 +101,15 @@ func (st *SearchTree[V, T]) DeleteMax() {
 		return
 	}
 
-	st.root = st.deleteMax(st.root)
+	st.root = deleteMax(st.root, st.cmp)
 	if st.root != nil {
 		st.root.color = black
 	}
 }
 
-func (st *SearchTree[V, T]) deleteMax(h *node[V, T]) *node[V, T] {
+func deleteMax[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 	if isRed(h.left) {
-		h = rotateRight(h, st.cmp)
+		h = rotateRight(h, cmp)
 	}
 
 	if h.right == nil {
@@ -117,12 +117,12 @@ func (st *SearchTree[V, T]) deleteMax(h *node[V, T]) *node[V, T] {
 	}
 
 	if !isRed(h.right) && !isRed(h.right.left) {
-		h = moveRedRight(h, st.cmp)
+		h = moveRedRight(h, cmp)
 	}
 
-	h.right = st.deleteMax(h.right)
+	h.right = deleteMax(h.right, cmp)
 
 	updateSize(h)
 
-	return fixUp(h, st.cmp)
+	return fixUp(h, cmp)
 }
