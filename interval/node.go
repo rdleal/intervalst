@@ -18,12 +18,12 @@ type node[V, T any] struct {
 	size     int
 }
 
-func newNode[V, T any](intervl interval[V, T], c color, sz int) *node[V, T] {
+func newNode[V, T any](intervl interval[V, T], c color) *node[V, T] {
 	return &node[V, T]{
 		interval: intervl,
 		maxEnd:   intervl.end,
 		color:    c,
-		size:     sz,
+		size:     1,
 	}
 }
 

@@ -18,31 +18,31 @@ func (st *SearchTree[V, T]) Insert(start, end T, val V) error {
 		return newInvalidIntervalError(intervl)
 	}
 
-	st.root = st.insert(st.root, intervl)
+	st.root = upsert(st.root, intervl, st.cmp)
 	st.root.color = black
 
 	return nil
 }
 
-func (st *SearchTree[V, T]) insert(h *node[V, T], intervl interval[V, T]) *node[V, T] {
+func upsert[V, T any](h *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *node[V, T] {
 	if h == nil {
-		return newNode(intervl, red, 1)
+		return newNode(intervl, red)
 	}
 
 	switch {
-	case intervl.equal(h.interval.start, h.interval.end, st.cmp):
+	case intervl.equal(h.interval.start, h.interval.end, cmp):
 		h.interval = intervl
-	case intervl.less(h.interval.start, h.interval.end, st.cmp):
-		h.left = st.insert(h.left, intervl)
+	case intervl.less(h.interval.start, h.interval.end, cmp):
+		h.left = upsert(h.left, intervl, cmp)
 	default:
-		h.right = st.insert(h.right, intervl)
+		h.right = upsert(h.right, intervl, cmp)
 	}
 
-	if st.cmp.gt(intervl.end, h.maxEnd) {
+	if cmp.gt(intervl.end, h.maxEnd) {
 		h.maxEnd = intervl.end
 	}
 
 	updateSize(h)
 
-	return balanceNode(h, st.cmp)
+	return balanceNode(h, cmp)
 }
