@@ -2,6 +2,7 @@ package interval_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/rdleal/intervalst/interval"
 )
@@ -69,4 +70,56 @@ func ExampleSearchTree_Floor() {
 	fmt.Println(val, ok)
 	// Output:
 	// value6 true
+}
+
+func ExampleMultiValueSearchTree_Insert() {
+	cmpFn := func(start, end time.Time) int {
+		switch {
+		case start.After(end):
+			return 1
+		case start.Before(end):
+			return -1
+		default:
+			return 0
+		}
+	}
+
+	st := interval.NewMultiValueSearchTree[string](cmpFn)
+
+	start, end := time.Now(), time.Now().Add(time.Hour)
+	st.Insert(start, end, "event1", "event2", "event3")
+
+	st.Insert(start, end, "event4")
+
+	vals, ok := st.Find(start, end)
+	fmt.Println(vals, ok)
+	// Output:
+	// [event1 event2 event3 event4] true
+}
+
+func ExampleMultiValueSearchTree_Upsert() {
+	cmpFn := func(start, end time.Time) int {
+		switch {
+		case start.After(end):
+			return 1
+		case start.Before(end):
+			return -1
+		default:
+			return 0
+		}
+	}
+
+	st := interval.NewMultiValueSearchTree[string](cmpFn)
+
+	start, end := time.Now(), time.Now().Add(time.Hour)
+	st.Insert(start, end, "event1", "event2", "event3")
+
+	// Upsert will replace the previous values associated
+	// with the start and end interval key, if any.
+	st.Upsert(start, end, "event4", "event5")
+
+	vals, ok := st.Find(start, end)
+	fmt.Println(vals, ok)
+	// Output:
+	// [event4 event5] true
 }
