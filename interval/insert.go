@@ -7,7 +7,8 @@ import (
 // Insert inserts the given val with the given start and end as the interval key.
 // If there's already an interval key entry with the given start and end interval,
 // it will be updated with the given val.
-// Insert returns an error if the given end is less than or equal to the given start value.
+//
+// Insert returns an InvalidIntervalError if the given end is less than or equal to the given start value.
 func (st *SearchTree[V, T]) Insert(start, end T, val V) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
@@ -52,7 +53,6 @@ func upsert[V, T any](h *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *no
 }
 
 // EmptyValueListError is a description of an invalid list of values.
-// Insert and Upsert of type MultiValueSearchTree will return an EmptyValueListError if the given values list is empty.
 type EmptyValueListError string
 
 // Error returns a string representation of the EmptyValueListError error.
@@ -68,7 +68,9 @@ func newEmptyValueListError[V, T any](it interval[V, T], action string) error {
 // Insert inserts the given vals with the given start and end as the interval key.
 // If there's already an interval key entry with the given start and end interval,
 // Insert will append the given vals to the exiting interval key.
-// Insert returns an error if the given end is less than or equal to the given start value, or if vals is an empty list.
+//
+// Insert returns an InvalidIntervalError if the given end is less than or equal to the given start value,
+// or an EmptyValueListError if vals is an empty list.
 func (st *MultiValueSearchTree[V, T]) Insert(start, end T, vals ...V) error {
 	intervl := interval[V, T]{
 		start: start,
@@ -116,7 +118,9 @@ func insert[V, T any](h *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *no
 // Upsert inserts the given vals with the given start and end as the interval key.
 // If there's already an interval key entry with the given start and end interval,
 // it will be updated with the given vals.
-// Insert returns an error if the given end is less than or equal to the given start value, or if vals is an empty list.
+//
+// Insert returns an InvalidIntervalError if the given end is less than or equal to the given start value,
+// or an EmptyValueListError if vals is an empty list.
 func (st *MultiValueSearchTree[V, T]) Upsert(start, end T, vals ...V) error {
 	intervl := interval[V, T]{
 		start: start,

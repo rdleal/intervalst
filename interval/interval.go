@@ -3,7 +3,6 @@ package interval
 import "fmt"
 
 // InvalidIntervalError is a description of an invalid interval.
-// Insert and Delete will return an InvalidIntervalError if the given interval key values are invalid.
 type InvalidIntervalError string
 
 // Error returns a string representation of the InvalidIntervalError error.

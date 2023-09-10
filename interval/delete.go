@@ -2,7 +2,8 @@ package interval
 
 // Delete removes the given start and end interval key and its associated value from the tree.
 // It does nothing if the given start and end interval key doesn't exist in the tree.
-// Delete returns an error if the given end is less than or equal to the given start value.
+//
+// Delete returns an InvalidIntervalError if the given end is less than or equal to the given start value.
 func (st *SearchTree[V, T]) Delete(start, end T) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
@@ -130,7 +131,8 @@ func deleteMax[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 
 // Delete removes the given start and end interval key and its associated values from the tree.
 // It does nothing if the given start and end interval key doesn't exist in the tree.
-// Delete returns an error if the given end is less than or equal to the given start value.
+//
+// Delete returns an InvalidIntervalError if the given end is less than or equal to the given start value.
 func (st *MultiValueSearchTree[V, T]) Delete(start, end T) error {
 	st.mu.Lock()
 	st.mu.Unlock()
