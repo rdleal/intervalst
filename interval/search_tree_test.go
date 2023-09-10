@@ -32,6 +32,21 @@ func TestSearchTree_Height(t *testing.T) {
 	}
 }
 
+func TestMultiValueSearchTree_Height(t *testing.T) {
+	st := NewMultiValueSearchTree[int](func(x, y int) int { return x - y })
+
+	for i := 0; i < 255; i++ {
+		err := st.Insert(i, i+1, i)
+		if err != nil {
+			t.Fatalf("Insert(%v, %v, %v): got unexpected error %v", i, i+1, i, err)
+		}
+	}
+
+	if h := st.Height(); h%2 != 0 {
+		t.Errorf("st.Height(): %v is not a power of 2", h)
+	}
+}
+
 func TestSearchTree_Size(t *testing.T) {
 	st := NewSearchTree[int](func(x, y int) int { return x - y })
 
@@ -76,6 +91,22 @@ func TestSearchTree_Size(t *testing.T) {
 	}
 }
 
+func TestMultiValueSearchTree_Size(t *testing.T) {
+	st := NewMultiValueSearchTree[int](func(x, y int) int { return x - y })
+
+	s := 20
+	for i := 0; i < s; i++ {
+		err := st.Insert(i, i+1, i)
+		if err != nil {
+			t.Fatalf("Insert(%v, %v, %v): got unexpected error %v", i, i+1, i, err)
+		}
+	}
+
+	if got, want := st.Size(), s; got != want {
+		t.Fatalf("st.Size(): got unexpected size %d; want %d", got, want)
+	}
+}
+
 func TestSearchTree_IsEmpty(t *testing.T) {
 	t.Run("EmptyTree", func(t *testing.T) {
 		st := NewSearchTree[int](func(x, y int) int { return x - y })
@@ -94,7 +125,50 @@ func TestSearchTree_IsEmpty(t *testing.T) {
 	})
 }
 
+func TestMultiValueSearchTree_NilCmpFunc(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("NewMultiValueSearchTree(nil): got execution without panic")
+		}
+	}()
+
+	NewMultiValueSearchTree[string, int](nil)
+}
+
+func TestMultiValueSearchTree_IsEmpty(t *testing.T) {
+	st := NewMultiValueSearchTree[int](func(x, y int) int { return x - y })
+
+	t.Run("EmptyTree", func(t *testing.T) {
+		if got, want := st.IsEmpty(), true; got != want {
+			t.Errorf("st.IsEmpty(): got unexpected value %t; want %t", got, want)
+		}
+	})
+
+	t.Run("NotEmptyTree", func(t *testing.T) {
+		st.Insert(10, 11, 0)
+
+		if got, want := st.IsEmpty(), false; got != want {
+			t.Errorf("st.IsEmpty(): got unexpected value %t; want %t", got, want)
+		}
+	})
+}
+
+type tree[V, T any] interface {
+	//SearchTree[V, T] | MultiValueSearchTree[V, T]
+	//*ST
+	//~SearchTree[V, T]
+	//~struct {
+	//	mu   sync.RWMutex // used to serialize read and write operations
+	//	root *node[V, T]
+	//	cmp  CmpFunc[T]
+	//}
+	roodNode() *node[V, T]
+}
+
 func mustBeValidTree[V, T any](t *testing.T, st *SearchTree[V, T]) {
+	//func mustBeValidTree[V, T any, ST tree[V, T]](t *testing.T, st ST) {
+	//func mustBeValidTree[V, T any, ST tree[V, T]](t *testing.T, st *ST) {
+	//func mustBeValidTree[V, T any, ST *SearchTree[V, T] | *MultiValueSearchTree[V, T]](t *testing.T, st ST) {
 	mustBeBalanced(t, st)
 	mustBeTwoThreeTree(t, st)
 	mustHaveConsistentSize(t, st)

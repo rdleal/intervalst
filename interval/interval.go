@@ -49,6 +49,7 @@ type interval[V, T any] struct {
 	start T
 	end   T
 	val   V
+	vals  []V
 }
 
 func (it interval[V, T]) isInvalid(cmp CmpFunc[T]) bool {

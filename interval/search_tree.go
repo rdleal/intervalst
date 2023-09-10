@@ -44,6 +44,10 @@ func NewSearchTree[V, T any](cmp CmpFunc[T]) *SearchTree[V, T] {
 	}
 }
 
+func (st *SearchTree[V, T]) rootNode() *node[V, T] {
+	return st.root
+}
+
 // Height returns the max depth of the tree.
 func (st *SearchTree[V, T]) Height() int {
 	st.mu.RLock()
@@ -66,4 +70,40 @@ func (st *SearchTree[V, T]) IsEmpty() bool {
 	defer st.mu.RUnlock()
 
 	return st.root == nil
+}
+
+type MultiValueSearchTree[V, T any] SearchTree[V, T]
+
+func NewMultiValueSearchTree[V, T any](cmp CmpFunc[T]) *MultiValueSearchTree[V, T] {
+	if cmp == nil {
+		panic("NewMultiValueSearchTree: comparison function cmp cannot be nil")
+	}
+	return &MultiValueSearchTree[V, T]{
+		cmp: cmp,
+	}
+}
+
+func (st *MultiValueSearchTree[V, T]) rootNode() *node[V, T] {
+	return st.root
+}
+
+func (st *MultiValueSearchTree[V, T]) Height() int {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	return int(height(st.root))
+}
+
+func (st *MultiValueSearchTree[V, T]) IsEmpty() bool {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	return st.root == nil
+}
+
+func (st *MultiValueSearchTree[V, T]) Size() int {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	return size(st.root)
 }
