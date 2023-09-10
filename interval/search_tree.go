@@ -44,10 +44,6 @@ func NewSearchTree[V, T any](cmp CmpFunc[T]) *SearchTree[V, T] {
 	}
 }
 
-func (st *SearchTree[V, T]) rootNode() *node[V, T] {
-	return st.root
-}
-
 // Height returns the max depth of the tree.
 func (st *SearchTree[V, T]) Height() int {
 	st.mu.RLock()
@@ -72,8 +68,16 @@ func (st *SearchTree[V, T]) IsEmpty() bool {
 	return st.root == nil
 }
 
+// MultiValueSearchTree is a generic type representing the Interval Search Tree
+// where V is a generic value type, and T is a generic interval key type.
+// MultiValueSearchTree can store multiple values for a given interval key.
 type MultiValueSearchTree[V, T any] SearchTree[V, T]
 
+// NewMultiValueSearchTree returns an initialized multi value interval search tree.
+// The cmp parameter is used for comparing total order of the interval key type T
+// when inserting or looking up an interval in the tree.
+// For more details on cmp, see the CmpFunc type.
+// NewMultiValueSearchTree will panic if cmp is nil.
 func NewMultiValueSearchTree[V, T any](cmp CmpFunc[T]) *MultiValueSearchTree[V, T] {
 	if cmp == nil {
 		panic("NewMultiValueSearchTree: comparison function cmp cannot be nil")
@@ -83,10 +87,7 @@ func NewMultiValueSearchTree[V, T any](cmp CmpFunc[T]) *MultiValueSearchTree[V, 
 	}
 }
 
-func (st *MultiValueSearchTree[V, T]) rootNode() *node[V, T] {
-	return st.root
-}
-
+// Height returns the max depth of the tree.
 func (st *MultiValueSearchTree[V, T]) Height() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
@@ -94,16 +95,18 @@ func (st *MultiValueSearchTree[V, T]) Height() int {
 	return int(height(st.root))
 }
 
-func (st *MultiValueSearchTree[V, T]) IsEmpty() bool {
-	st.mu.RLock()
-	defer st.mu.RUnlock()
-
-	return st.root == nil
-}
-
+// Size returns the number of intervals in the tree.
 func (st *MultiValueSearchTree[V, T]) Size() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
 	return size(st.root)
+}
+
+// IsEmpty returns true if the tree is empty; otherwise, false.
+func (st *MultiValueSearchTree[V, T]) IsEmpty() bool {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	return st.root == nil
 }

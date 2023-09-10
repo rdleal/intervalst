@@ -1,35 +1,11 @@
 package interval
 
-// Delete removes the value associated with the given start and end interval key.
+// Delete removes the given start and end interval key and its associated value from the tree.
+// It does nothing if the given start and end interval key doesn't exist in the tree.
 // Delete returns an error if the given end is less than or equal to the given start value.
 func (st *SearchTree[V, T]) Delete(start, end T) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
-
-	if st.root == nil {
-		return nil
-	}
-
-	intervl := interval[V, T]{
-		start: start,
-		end:   end,
-	}
-
-	if intervl.isInvalid(st.cmp) {
-		return newInvalidIntervalError(intervl)
-	}
-
-	st.root = delete(st.root, intervl, st.cmp)
-	if st.root != nil {
-		st.root.color = black
-	}
-
-	return nil
-}
-
-func (st *MultiValueSearchTree[V, T]) Delete(start, end T) error {
-	st.mu.Lock()
-	st.mu.Unlock()
 
 	if st.root == nil {
 		return nil
@@ -117,36 +93,8 @@ func (st *SearchTree[V, T]) DeleteMin() {
 	}
 }
 
-func (st *MultiValueSearchTree[V, T]) DeleteMin() {
-	st.mu.Lock()
-	defer st.mu.Unlock()
-
-	if st.root == nil {
-		return
-	}
-
-	st.root = deleteMin(st.root, st.cmp)
-	if st.root != nil {
-		st.root.color = black
-	}
-}
-
 // DeleteMax removes the largest interval key and its associated value from the tree.
 func (st *SearchTree[V, T]) DeleteMax() {
-	st.mu.Lock()
-	defer st.mu.Unlock()
-
-	if st.root == nil {
-		return
-	}
-
-	st.root = deleteMax(st.root, st.cmp)
-	if st.root != nil {
-		st.root.color = black
-	}
-}
-
-func (st *MultiValueSearchTree[V, T]) DeleteMax() {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
@@ -178,4 +126,62 @@ func deleteMax[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 	updateSize(h)
 
 	return fixUp(h, cmp)
+}
+
+// Delete removes the given start and end interval key and its associated values from the tree.
+// It does nothing if the given start and end interval key doesn't exist in the tree.
+// Delete returns an error if the given end is less than or equal to the given start value.
+func (st *MultiValueSearchTree[V, T]) Delete(start, end T) error {
+	st.mu.Lock()
+	st.mu.Unlock()
+
+	if st.root == nil {
+		return nil
+	}
+
+	intervl := interval[V, T]{
+		start: start,
+		end:   end,
+	}
+
+	if intervl.isInvalid(st.cmp) {
+		return newInvalidIntervalError(intervl)
+	}
+
+	st.root = delete(st.root, intervl, st.cmp)
+	if st.root != nil {
+		st.root.color = black
+	}
+
+	return nil
+}
+
+// DeleteMin removes the smallest interval key and its associated values from the tree.
+func (st *MultiValueSearchTree[V, T]) DeleteMin() {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
+	if st.root == nil {
+		return
+	}
+
+	st.root = deleteMin(st.root, st.cmp)
+	if st.root != nil {
+		st.root.color = black
+	}
+}
+
+// DeleteMax removes the largest interval key and its associated values from the tree.
+func (st *MultiValueSearchTree[V, T]) DeleteMax() {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
+	if st.root == nil {
+		return
+	}
+
+	st.root = deleteMax(st.root, st.cmp)
+	if st.root != nil {
+		st.root.color = black
+	}
 }

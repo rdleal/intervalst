@@ -45,7 +45,7 @@ func TestSearchTree_Delete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprint(tc.start, tc.end), func(t *testing.T) {
-			defer mustBeValidTree(t, st)
+			defer mustBeValidTree(t, st.root)
 
 			if err := st.Delete(tc.start, tc.end); err != nil {
 				t.Fatalf("st.Delete(%v, %v): got unexpected error %v", tc.start, tc.end, err)
@@ -103,7 +103,7 @@ func TestSearchTree_DeleteMin(t *testing.T) {
 		t.Errorf("Find(5, 8): got unexpected removed value: %v", v)
 	}
 
-	mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMin()
 
@@ -111,7 +111,7 @@ func TestSearchTree_DeleteMin(t *testing.T) {
 		t.Errorf("Find(17, 19): got unexpected removed value: %v", v)
 	}
 
-	mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMin()
 
@@ -136,7 +136,7 @@ func TestSearchTree_DeleteMax(t *testing.T) {
 		t.Errorf("Find(25, 27): got unexpected removed value: %v", v)
 	}
 
-	mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMax()
 
@@ -144,7 +144,7 @@ func TestSearchTree_DeleteMax(t *testing.T) {
 		t.Errorf("Find(24, 26): got unexpected removed value: %v", v)
 	}
 
-	mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMax()
 
@@ -152,7 +152,7 @@ func TestSearchTree_DeleteMax(t *testing.T) {
 		t.Errorf("Find(23, 25): got unexpected removed value: %v", v)
 	}
 
-	mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMax()
 
@@ -211,7 +211,7 @@ func TestMultiValueSearchTree_Delete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprint(tc.start, tc.end), func(t *testing.T) {
-			//defer mustBeValidTree(t, st)
+			defer mustBeValidTree(t, st.root)
 
 			if err := st.Delete(tc.start, tc.end); err != nil {
 				t.Fatalf("st.Delete(%v, %v): got unexpected error %v", tc.start, tc.end, err)
@@ -269,7 +269,7 @@ func TestMultiValueSearchTree_DeleteMin(t *testing.T) {
 		t.Errorf("st.Find(5, 8): got unexpected removed value: %v", v)
 	}
 
-	//mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMin()
 
@@ -277,7 +277,7 @@ func TestMultiValueSearchTree_DeleteMin(t *testing.T) {
 		t.Errorf("st.Find(17, 19): got unexpected removed value: %v", v)
 	}
 
-	//mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMin()
 
@@ -302,7 +302,7 @@ func TestMultiValueSearchTree_DeleteMax(t *testing.T) {
 		t.Errorf("Find(25, 27): got unexpected removed value: %v", v)
 	}
 
-	//mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMax()
 
@@ -310,7 +310,7 @@ func TestMultiValueSearchTree_DeleteMax(t *testing.T) {
 		t.Errorf("Find(24, 26): got unexpected removed value: %v", v)
 	}
 
-	//mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMax()
 
@@ -318,7 +318,7 @@ func TestMultiValueSearchTree_DeleteMax(t *testing.T) {
 		t.Errorf("Find(23, 25): got unexpected removed value: %v", v)
 	}
 
-	//mustBeBalanced(t, st)
+	mustBeBalanced(t, st.root)
 
 	st.DeleteMax()
 

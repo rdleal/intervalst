@@ -153,37 +153,26 @@ func TestMultiValueSearchTree_IsEmpty(t *testing.T) {
 	})
 }
 
-type tree[V, T any] interface {
-	//SearchTree[V, T] | MultiValueSearchTree[V, T]
-	//*ST
-	//~SearchTree[V, T]
-	//~struct {
-	//	mu   sync.RWMutex // used to serialize read and write operations
-	//	root *node[V, T]
-	//	cmp  CmpFunc[T]
-	//}
-	roodNode() *node[V, T]
-}
+func mustBeValidTree[V, T any](t *testing.T, root *node[V, T]) {
+	t.Helper()
 
-func mustBeValidTree[V, T any](t *testing.T, st *SearchTree[V, T]) {
-	//func mustBeValidTree[V, T any, ST tree[V, T]](t *testing.T, st ST) {
-	//func mustBeValidTree[V, T any, ST tree[V, T]](t *testing.T, st *ST) {
-	//func mustBeValidTree[V, T any, ST *SearchTree[V, T] | *MultiValueSearchTree[V, T]](t *testing.T, st ST) {
-	mustBeBalanced(t, st)
-	mustBeTwoThreeTree(t, st)
-	mustHaveConsistentSize(t, st)
+	mustBeBalanced(t, root)
+	mustBeTwoThreeTree(t, root)
+	mustHaveConsistentSize(t, root)
 }
 
 // Tests if all paths from root to leaf have the same number of blacks edges.
-func mustBeBalanced[V, T any](t *testing.T, st *SearchTree[V, T]) {
+func mustBeBalanced[V, T any](t *testing.T, root *node[V, T]) {
+	t.Helper()
+
 	var black int
-	for x := st.root; x != nil; x = x.left {
+	for x := root; x != nil; x = x.left {
 		if !isRed(x) {
 			black++
 		}
 	}
 
-	if !isBalanced(st.root, black) {
+	if !isBalanced(root, black) {
 		t.Fatal("Interval Tree is not balanced")
 	}
 }
@@ -201,8 +190,10 @@ func isBalanced[V, T any](h *node[V, T], black int) bool {
 
 // Tests if SearchTree is a 2-3 tree as left-leaning red black tree has a 1-1 correspondence to a 2-3 tree.
 // For more on that, see https://sedgewick.io/wp-content/themes/sedgewick/papers/2008LLRB.pdf
-func mustBeTwoThreeTree[V, T any](t *testing.T, st *SearchTree[V, T]) {
-	if !isTwoThreeTree(st.root) {
+func mustBeTwoThreeTree[V, T any](t *testing.T, root *node[V, T]) {
+	t.Helper()
+
+	if !isTwoThreeTree(root) {
 		t.Fatalf("Interval Tree is not a 2-3 tree")
 	}
 }
@@ -224,8 +215,10 @@ func isTwoThreeTree[V, T any](h *node[V, T]) bool {
 }
 
 // Tests if the SearchTree nodes have consistent size.
-func mustHaveConsistentSize[V, T any](t *testing.T, st *SearchTree[V, T]) {
-	if !isSizeConsistent(st.root) {
+func mustHaveConsistentSize[V, T any](t *testing.T, root *node[V, T]) {
+	t.Helper()
+
+	if !isSizeConsistent(root) {
 		t.Fatalf("Interval Tree size is not consistent")
 	}
 }
