@@ -29,54 +29,54 @@ func (st *SearchTree[V, T]) Delete(start, end T) error {
 	return nil
 }
 
-func delete[V, T any](h *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *node[V, T] {
-	if h == nil {
+func delete[V, T any](n *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *node[V, T] {
+	if n == nil {
 		return nil
 	}
 
-	if intervl.less(h.interval.start, h.interval.end, cmp) {
-		if h.left != nil && !isRed(h.left) && !isRed(h.left.left) {
-			h = moveRedLeft(h, cmp)
+	if intervl.less(n.interval.start, n.interval.end, cmp) {
+		if n.left != nil && !isRed(n.left) && !isRed(n.left.left) {
+			n = moveRedLeft(n, cmp)
 		}
-		h.left = delete(h.left, intervl, cmp)
+		n.left = delete(n.left, intervl, cmp)
 	} else {
-		if isRed(h.left) {
-			h = rotateRight(h, cmp)
+		if isRed(n.left) {
+			n = rotateRight(n, cmp)
 		}
-		if h.interval.equal(intervl.start, intervl.end, cmp) && h.right == nil {
+		if n.interval.equal(intervl.start, intervl.end, cmp) && n.right == nil {
 			return nil
 		}
-		if h.right != nil && !isRed(h.right) && !isRed(h.right.left) {
-			h = moveRedRight(h, cmp)
+		if n.right != nil && !isRed(n.right) && !isRed(n.right.left) {
+			n = moveRedRight(n, cmp)
 		}
-		if h.interval.equal(intervl.start, intervl.end, cmp) {
-			minNode := min(h.right)
-			h.interval = minNode.interval
-			h.right = deleteMin(h.right, cmp)
+		if n.interval.equal(intervl.start, intervl.end, cmp) {
+			minNode := min(n.right)
+			n.interval = minNode.interval
+			n.right = deleteMin(n.right, cmp)
 		} else {
-			h.right = delete(h.right, intervl, cmp)
+			n.right = delete(n.right, intervl, cmp)
 		}
 	}
 
-	updateSize(h)
+	updateSize(n)
 
-	return fixUp(h, cmp)
+	return fixUp(n, cmp)
 }
 
-func deleteMin[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
-	if h.left == nil {
+func deleteMin[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
+	if n.left == nil {
 		return nil
 	}
 
-	if !isRed(h.left) && !isRed(h.left.left) {
-		h = moveRedLeft(h, cmp)
+	if !isRed(n.left) && !isRed(n.left.left) {
+		n = moveRedLeft(n, cmp)
 	}
 
-	h.left = deleteMin(h.left, cmp)
+	n.left = deleteMin(n.left, cmp)
 
-	updateSize(h)
+	updateSize(n)
 
-	return fixUp(h, cmp)
+	return fixUp(n, cmp)
 }
 
 // DeleteMin removes the smallest interval key and its associated value from the tree.
@@ -109,24 +109,24 @@ func (st *SearchTree[V, T]) DeleteMax() {
 	}
 }
 
-func deleteMax[V, T any](h *node[V, T], cmp CmpFunc[T]) *node[V, T] {
-	if isRed(h.left) {
-		h = rotateRight(h, cmp)
+func deleteMax[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
+	if isRed(n.left) {
+		n = rotateRight(n, cmp)
 	}
 
-	if h.right == nil {
+	if n.right == nil {
 		return nil
 	}
 
-	if !isRed(h.right) && !isRed(h.right.left) {
-		h = moveRedRight(h, cmp)
+	if !isRed(n.right) && !isRed(n.right.left) {
+		n = moveRedRight(n, cmp)
 	}
 
-	h.right = deleteMax(h.right, cmp)
+	n.right = deleteMax(n.right, cmp)
 
-	updateSize(h)
+	updateSize(n)
 
-	return fixUp(h, cmp)
+	return fixUp(n, cmp)
 }
 
 // Delete removes the given start and end interval key and its associated values from the tree.

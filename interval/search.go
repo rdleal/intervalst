@@ -93,17 +93,17 @@ func (st *SearchTree[V, T]) AllIntersections(start, end T) ([]V, bool) {
 	return vals, len(vals) > 0
 }
 
-func searchInOrder[V, T any](h *node[V, T], start, end T, cmp CmpFunc[T], foundFn func(interval[V, T])) {
-	if h.left != nil && cmp.gte(h.left.maxEnd, start) {
-		searchInOrder(h.left, start, end, cmp, foundFn)
+func searchInOrder[V, T any](n *node[V, T], start, end T, cmp CmpFunc[T], foundFn func(interval[V, T])) {
+	if n.left != nil && cmp.gte(n.left.maxEnd, start) {
+		searchInOrder(n.left, start, end, cmp, foundFn)
 	}
 
-	if h.interval.intersects(start, end, cmp) {
-		foundFn(h.interval)
+	if n.interval.intersects(start, end, cmp) {
+		foundFn(n.interval)
 	}
 
-	if h.right != nil && cmp.gte(h.right.maxEnd, start) {
-		searchInOrder(h.right, start, end, cmp, foundFn)
+	if n.right != nil && cmp.gte(n.right.maxEnd, start) {
+		searchInOrder(n.right, start, end, cmp, foundFn)
 	}
 }
 

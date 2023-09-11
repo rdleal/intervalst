@@ -29,27 +29,27 @@ func (st *SearchTree[V, T]) Insert(start, end T, val V) error {
 	return nil
 }
 
-func upsert[V, T any](h *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *node[V, T] {
-	if h == nil {
+func upsert[V, T any](n *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *node[V, T] {
+	if n == nil {
 		return newNode(intervl, red)
 	}
 
 	switch {
-	case intervl.equal(h.interval.start, h.interval.end, cmp):
-		h.interval = intervl
-	case intervl.less(h.interval.start, h.interval.end, cmp):
-		h.left = upsert(h.left, intervl, cmp)
+	case intervl.equal(n.interval.start, n.interval.end, cmp):
+		n.interval = intervl
+	case intervl.less(n.interval.start, n.interval.end, cmp):
+		n.left = upsert(n.left, intervl, cmp)
 	default:
-		h.right = upsert(h.right, intervl, cmp)
+		n.right = upsert(n.right, intervl, cmp)
 	}
 
-	if cmp.gt(intervl.end, h.maxEnd) {
-		h.maxEnd = intervl.end
+	if cmp.gt(intervl.end, n.maxEnd) {
+		n.maxEnd = intervl.end
 	}
 
-	updateSize(h)
+	updateSize(n)
 
-	return balanceNode(h, cmp)
+	return balanceNode(n, cmp)
 }
 
 // EmptyValueListError is a description of an invalid list of values.
@@ -92,27 +92,27 @@ func (st *MultiValueSearchTree[V, T]) Insert(start, end T, vals ...V) error {
 	return nil
 }
 
-func insert[V, T any](h *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *node[V, T] {
-	if h == nil {
+func insert[V, T any](n *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *node[V, T] {
+	if n == nil {
 		return newNode(intervl, red)
 	}
 
 	switch {
-	case intervl.equal(h.interval.start, h.interval.end, cmp):
-		h.interval.vals = append(h.interval.vals, intervl.vals...)
-	case intervl.less(h.interval.start, h.interval.end, cmp):
-		h.left = upsert(h.left, intervl, cmp)
+	case intervl.equal(n.interval.start, n.interval.end, cmp):
+		n.interval.vals = append(n.interval.vals, intervl.vals...)
+	case intervl.less(n.interval.start, n.interval.end, cmp):
+		n.left = upsert(n.left, intervl, cmp)
 	default:
-		h.right = upsert(h.right, intervl, cmp)
+		n.right = upsert(n.right, intervl, cmp)
 	}
 
-	if cmp.gt(intervl.end, h.maxEnd) {
-		h.maxEnd = intervl.end
+	if cmp.gt(intervl.end, n.maxEnd) {
+		n.maxEnd = intervl.end
 	}
 
-	updateSize(h)
+	updateSize(n)
 
-	return balanceNode(h, cmp)
+	return balanceNode(n, cmp)
 }
 
 // Upsert inserts the given vals with the given start and end as the interval key.
