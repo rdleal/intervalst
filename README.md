@@ -13,6 +13,12 @@ for any intersection has a worst-case time-complexity guarantee of <= 2 log N, w
 
 For more on interval trees, [see](https://en.wikipedia.org/wiki/Interval_tree)
 
+## Installing
+
+```sh
+$ go get github.com/rdleal/intervalst
+```
+
 ## Usage
 
 Importing the package:
