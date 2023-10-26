@@ -14,9 +14,10 @@ func (st *SearchTree[V, T]) Insert(start, end T, val V) error {
 	defer st.mu.Unlock()
 
 	intervl := interval[V, T]{
-		start: start,
-		end:   end,
-		val:   val,
+		start:      start,
+		end:        end,
+		val:        val,
+		allowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
@@ -73,9 +74,10 @@ func newEmptyValueListError[V, T any](it interval[V, T], action string) error {
 // or an EmptyValueListError if vals is an empty list.
 func (st *MultiValueSearchTree[V, T]) Insert(start, end T, vals ...V) error {
 	intervl := interval[V, T]{
-		start: start,
-		end:   end,
-		vals:  vals,
+		start:      start,
+		end:        end,
+		vals:       vals,
+		allowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
@@ -123,9 +125,10 @@ func insert[V, T any](n *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *no
 // or an EmptyValueListError if vals is an empty list.
 func (st *MultiValueSearchTree[V, T]) Upsert(start, end T, vals ...V) error {
 	intervl := interval[V, T]{
-		start: start,
-		end:   end,
-		vals:  vals,
+		start:      start,
+		end:        end,
+		vals:       vals,
+		allowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {

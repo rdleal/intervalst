@@ -8,6 +8,7 @@
 // For more on interval trees, see https://en.wikipedia.org/wiki/Interval_tree
 //
 // To create a tree with time.Time as interval key type and string as value type:
+//
 //	cmpFn := func(t1, t2 time.Time) int {
 //	  switch{
 //	  case t1.After(t2): return 1
@@ -15,19 +16,24 @@
 //	  default: return 0
 //	  }
 //	}
-// 	st := interval.NewSearchTree[string](cmpFn)
+//	st := interval.NewSearchTree[string](cmpFn)
 package interval
 
 import (
 	"sync"
 )
 
+type TreeConfig struct {
+	allowIntervalPoint bool
+}
+
 // SearchTree is a generic type representing the Interval Search Tree
 // where V is a generic value type, and T is a generic interval key type.
 type SearchTree[V, T any] struct {
-	mu   sync.RWMutex // used to serialize read and write operations
-	root *node[V, T]
-	cmp  CmpFunc[T]
+	mu     sync.RWMutex // used to serialize read and write operations
+	root   *node[V, T]
+	cmp    CmpFunc[T]
+	config TreeConfig
 }
 
 // NewSearchTree returns an initialized interval search tree.
@@ -42,6 +48,30 @@ func NewSearchTree[V, T any](cmp CmpFunc[T]) *SearchTree[V, T] {
 	return &SearchTree[V, T]{
 		cmp: cmp,
 	}
+}
+
+type TreeOption func(*TreeConfig)
+
+func TreeWithIntervalPoint() TreeOption {
+	return func(c *TreeConfig) {
+		c.allowIntervalPoint = true
+	}
+}
+
+func NewSearchTreeWithOptions[V, T any](cmp CmpFunc[T], opts ...TreeOption) *SearchTree[V, T] {
+	if cmp == nil {
+		panic("NewSearchTreeWithOptions: comparison function cmp cannot be nil")
+	}
+
+	st := &SearchTree[V, T]{
+		cmp: cmp,
+	}
+
+	for _, opt := range opts {
+		opt(&st.config)
+	}
+
+	return st
 }
 
 // Height returns the max depth of the tree.
@@ -85,6 +115,22 @@ func NewMultiValueSearchTree[V, T any](cmp CmpFunc[T]) *MultiValueSearchTree[V, 
 	return &MultiValueSearchTree[V, T]{
 		cmp: cmp,
 	}
+}
+
+func NewMultiValueSearchTreeWithOptions[V, T any](cmp CmpFunc[T], opts ...TreeOption) *MultiValueSearchTree[V, T] {
+	if cmp == nil {
+		panic("NewMultiValueSearchTreeWithOptions: comparison function cmp cannot be nil")
+	}
+
+	st := &MultiValueSearchTree[V, T]{
+		cmp: cmp,
+	}
+
+	for _, opt := range opts {
+		opt(&st.config)
+	}
+
+	return st
 }
 
 // Height returns the max depth of the tree.

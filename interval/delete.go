@@ -13,8 +13,9 @@ func (st *SearchTree[V, T]) Delete(start, end T) error {
 	}
 
 	intervl := interval[V, T]{
-		start: start,
-		end:   end,
+		start:      start,
+		end:        end,
+		allowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
@@ -142,8 +143,9 @@ func (st *MultiValueSearchTree[V, T]) Delete(start, end T) error {
 	}
 
 	intervl := interval[V, T]{
-		start: start,
-		end:   end,
+		start:      start,
+		end:        end,
+		allowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
