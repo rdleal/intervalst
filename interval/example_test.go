@@ -123,3 +123,26 @@ func ExampleMultiValueSearchTree_Upsert() {
 	// Output:
 	// [event4 event5] true
 }
+
+func ExampleTreeWithIntervalPoint() {
+	cmpFn := func(start, end time.Time) int {
+		switch {
+		case start.After(end):
+			return 1
+		case start.Before(end):
+			return -1
+		default:
+			return 0
+		}
+	}
+
+	st := interval.NewSearchTreeWithOptions[string](cmpFn, interval.TreeWithIntervalPoint())
+
+	pointInerval := time.Now()
+	st.Insert(pointInerval, pointInerval, "event")
+
+	vals, ok := st.Find(pointInerval, pointInerval)
+	fmt.Println(vals, ok)
+	// Output:
+	// event true
+}

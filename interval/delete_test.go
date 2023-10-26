@@ -59,6 +59,20 @@ func TestSearchTree_Delete(t *testing.T) {
 	}
 }
 
+func TestSearchTree_Delete_PointInterval(t *testing.T) {
+	cmpFunc := func(x, y int) int { return x - y }
+	st := NewSearchTreeWithOptions[int](cmpFunc, TreeWithIntervalPoint())
+
+	start, end := 17, 17
+	if err := st.Insert(start, end, 0); err != nil {
+		t.Fatalf("st.Insert(%v, %v): got unexpected error: %v", start, end, err)
+	}
+
+	if err := st.Delete(start, end); err != nil {
+		t.Errorf("st.Delete(%v, %v): got unexpected error: %v", start, end, err)
+	}
+}
+
 func TestSearchTree_Delete_EmptyTree(t *testing.T) {
 	st := NewSearchTree[any](func(x, y int) int { return x - y })
 
@@ -83,10 +97,30 @@ func TestSearchTree_Delete_Error(t *testing.T) {
 		st := NewSearchTree[any](func(x, y int) int { return x - y })
 		st.Insert(5, 10, nil)
 
-		start, end := 10, 4
-		err := st.Delete(start, end)
-		if err == nil {
-			t.Errorf("st.Delete(%v, %v): got nil error", start, end)
+		testCases := []struct {
+			name       string
+			start, end int
+		}{
+			{
+				name:  "EndSmallerThenStart",
+				start: 10,
+				end:   5,
+			},
+			{
+				name:  "PointInterval",
+				start: 10,
+				end:   10,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+
+				err := st.Delete(tc.start, tc.end)
+				if err == nil {
+					t.Errorf("st.Delete(%v, %v): got nil error", tc.start, tc.end)
+				}
+			})
 		}
 	})
 }
@@ -225,6 +259,20 @@ func TestMultiValueSearchTree_Delete(t *testing.T) {
 	}
 }
 
+func TestMultiSearchSearchTree_Delete_PointInterval(t *testing.T) {
+	cmpFunc := func(x, y int) int { return x - y }
+	st := NewMultiValueSearchTreeWithOptions[int](cmpFunc, TreeWithIntervalPoint())
+
+	start, end := 17, 17
+	if err := st.Insert(start, end, 0); err != nil {
+		t.Fatalf("st.Insert(%v, %v): got unexpected error: %v", start, end, err)
+	}
+
+	if err := st.Delete(start, end); err != nil {
+		t.Errorf("st.Delete(%v, %v): got unexpected error: %v", start, end, err)
+	}
+}
+
 func TestMultiValueSearchTree_Delete_EmptyTree(t *testing.T) {
 	st := NewMultiValueSearchTree[any](func(x, y int) int { return x - y })
 
@@ -249,10 +297,29 @@ func TestMultiValueSearchTree_Delete_Error(t *testing.T) {
 		st := NewMultiValueSearchTree[any](func(x, y int) int { return x - y })
 		st.Insert(5, 10, nil)
 
-		start, end := 10, 4
-		err := st.Delete(start, end)
-		if err == nil {
-			t.Errorf("st.Delete(%v, %v): got nil error", start, end)
+		testCases := []struct {
+			name       string
+			start, end int
+		}{
+			{
+				name:  "EndSmallerThanStart",
+				start: 10,
+				end:   4,
+			},
+			{
+				name:  "PointInterval",
+				start: 10,
+				end:   10,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				err := st.Delete(tc.start, tc.end)
+				if err == nil {
+					t.Errorf("st.Delete(%v, %v): got nil error", tc.start, tc.end)
+				}
+			})
 		}
 	})
 }

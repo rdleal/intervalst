@@ -1,6 +1,9 @@
 package interval
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // InvalidIntervalError is a description of an invalid interval.
 type InvalidIntervalError string
@@ -11,8 +14,13 @@ func (s InvalidIntervalError) Error() string {
 }
 
 func newInvalidIntervalError[V, T any](it interval[V, T]) error {
-	s := fmt.Sprintf("interval search tree invalid range: start value %v cannot be less than or equal to end value %v", it.start, it.end)
-	return InvalidIntervalError(s)
+	var b strings.Builder
+	fmt.Fprintf(&b, "interval search tree invalid range: start value %v cannot be less than ", it.start)
+	if !it.allowPoint {
+		b.WriteString("or equal to ")
+	}
+	fmt.Fprintf(&b, "end value %v", it.end)
+	return InvalidIntervalError(b.String())
 }
 
 // CmpFunc must return a nagative integer, zero or a positive interger as x is
@@ -45,13 +53,17 @@ func (f CmpFunc[T]) gte(x, y T) bool {
 }
 
 type interval[V, T any] struct {
-	start T
-	end   T
-	val   V
-	vals  []V
+	start      T
+	end        T
+	val        V
+	vals       []V
+	allowPoint bool
 }
 
 func (it interval[V, T]) isInvalid(cmp CmpFunc[T]) bool {
+	if it.allowPoint {
+		return cmp.lt(it.end, it.start)
+	}
 	return cmp.lte(it.end, it.start)
 }
 

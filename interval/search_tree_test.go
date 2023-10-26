@@ -17,6 +17,16 @@ func TestNewSearchTree_EmptyCmp(t *testing.T) {
 	NewSearchTree[string, int](nil)
 }
 
+func TestNewSearchTreeWithOptions_EmptyCmp(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("NewSearchTreeWithOptions(nil): got execution without panic")
+		}
+	}()
+
+	NewSearchTreeWithOptions[string, int](nil)
+}
+
 func TestSearchTree_Height(t *testing.T) {
 	st := NewSearchTree[int](func(x, y int) int { return x - y })
 
@@ -133,6 +143,16 @@ func TestMultiValueSearchTree_NilCmpFunc(t *testing.T) {
 	}()
 
 	NewMultiValueSearchTree[string, int](nil)
+}
+
+func TestMultiValueSearchTreeWithOptions_NilCmpFunc(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("NewMultiValueSearchTreeWithOptions(nil): got execution without panic")
+		}
+	}()
+
+	NewMultiValueSearchTreeWithOptions[string, int](nil)
 }
 
 func TestMultiValueSearchTree_IsEmpty(t *testing.T) {
