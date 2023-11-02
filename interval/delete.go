@@ -136,7 +136,7 @@ func deleteMax[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 // Delete returns an InvalidIntervalError if the given end is less than or equal to the given start value.
 func (st *MultiValueSearchTree[V, T]) Delete(start, end T) error {
 	st.mu.Lock()
-	st.mu.Unlock()
+	defer st.mu.Unlock()
 
 	if st.root == nil {
 		return nil
