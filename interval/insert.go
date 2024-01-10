@@ -105,9 +105,9 @@ func insert[V, T any](n *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *no
 	case intervl.equal(n.interval.start, n.interval.end, cmp):
 		n.interval.vals = append(n.interval.vals, intervl.vals...)
 	case intervl.less(n.interval.start, n.interval.end, cmp):
-		n.left = upsert(n.left, intervl, cmp)
+		n.left = insert(n.left, intervl, cmp)
 	default:
-		n.right = upsert(n.right, intervl, cmp)
+		n.right = insert(n.right, intervl, cmp)
 	}
 
 	if cmp.gt(intervl.end, n.maxEnd) {
