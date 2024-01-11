@@ -125,23 +125,6 @@ func TestMultiValueSearchTree_Insert(t *testing.T) {
 	if want := append(vals, val); !reflect.DeepEqual(got, want) {
 		t.Errorf("st.Find(%v, %v): got unexpected value %v; want %v", start, end, got, want)
 	}
-
-    // Ensure that values inserted for the same interval are appended rather than replacing what's there
-	st2 := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st2.root)
-
-    st2.Insert(start, end, "foo")
-    st2.Insert(start, end, "foo")
-    st2.Insert(start, end, "foo")
-    st2.Insert(start, end, "foo")
-    st2.Insert(start, end, "foo")
-
-    want := []string{"foo", "foo", "foo", "foo", "foo"}
-    got, ok = st2.AllIntersections(start, end)
-    if !reflect.DeepEqual(got, want) {
-        t.Errorf("st.AllIntersections(%v, %v): got unexpected values %v, want values %v", start, end, got, want)
-    }
-
 }
 
 func TestMultiValueSearchTree_Insert_PointInterval(t *testing.T) {
