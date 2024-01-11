@@ -96,9 +96,9 @@ func TestMultiValueSearchTree_Insert(t *testing.T) {
 	st := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
 	defer mustBeValidTree(t, st.root)
 
-    st.Insert(1, 2, "foo")
-    st.Insert(1, 2, "foo")
-    st.Insert(1, 2, "foo")
+	st.Insert(1, 2, "foo")
+	st.Insert(1, 2, "foo")
+	st.Insert(1, 2, "foo")
 
 	vals := []string{"value1", "value2", "value3", "value4"}
 	start, end := 17, 19

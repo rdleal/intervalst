@@ -192,26 +192,26 @@ func TestSearchTree_AllIntersections(t *testing.T) {
 		})
 	}
 
-    // Ensure that values inserted for the same interval are appended rather than replacing what's there
+	// Ensure that values inserted for the same interval are appended rather than replacing what's there
 	st2 := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
 	defer mustBeValidTree(t, st2.root)
 
-    start, end := 10, 20
-    st2.Insert(start, end, "foo")
-    st2.Insert(start, end, "foo")
-    st2.Insert(start, end, "foo")
-    st2.Insert(start, end, "foo")
-    st2.Insert(start, end, "foo")
+	start, end := 10, 20
+	st2.Insert(start, end, "foo")
+	st2.Insert(start, end, "foo")
+	st2.Insert(start, end, "foo")
+	st2.Insert(start, end, "foo")
+	st2.Insert(start, end, "foo")
 
-    want := []string{"foo", "foo", "foo", "foo", "foo"}
-    got, ok := st2.AllIntersections(start, end)
-    if !ok {
-        t.Errorf("st2.AllIntersections(%v, %v): unable to retreive any values, want values %v", start, end, want)
-    }
+	want := []string{"foo", "foo", "foo", "foo", "foo"}
+	got, ok := st2.AllIntersections(start, end)
+	if !ok {
+		t.Errorf("st2.AllIntersections(%v, %v): unable to retreive any values, want values %v", start, end, want)
+	}
 
-    if !reflect.DeepEqual(got, want) {
-        t.Errorf("st2.AllIntersections(%v, %v): got unexpected values %v, want values %v", start, end, got, want)
-    }
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("st2.AllIntersections(%v, %v): got unexpected values %v, want values %v", start, end, got, want)
+	}
 }
 
 func TestSearchTree_AllIntersections_EmptyTree(t *testing.T) {
