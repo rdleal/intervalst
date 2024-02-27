@@ -3,7 +3,6 @@ package interval
 import (
 	"fmt"
 	"reflect"
-	"slices"
 	"testing"
 	"time"
 )
@@ -999,7 +998,7 @@ func TestMultiValueSearchTree_MaxEnd(t *testing.T) {
 				{start: 20, end: 30, val: "node5"},
 				{start: 25, end: 30, val: "node6"},
 			},
-			expectedMaxEndStrings: []string{"node5", "node6"},
+			expectedMaxEndStrings: []string{"node6", "node5"},
 		},
 		"multiple intervals with same end and same start": {
 			inserts: []insert{
@@ -1007,7 +1006,7 @@ func TestMultiValueSearchTree_MaxEnd(t *testing.T) {
 				{start: 25, end: 30, val: "node6"},
 				{start: 25, end: 30, val: "node7"},
 			},
-			expectedMaxEndStrings: []string{"node5", "node6", "node7"},
+			expectedMaxEndStrings: []string{"node6", "node7", "node5"},
 		},
 		"interval spanning entire range": {
 			inserts: []insert{
@@ -1033,8 +1032,6 @@ func TestMultiValueSearchTree_MaxEnd(t *testing.T) {
 				t.Errorf("st.MaxEnd(): got no max end value")
 			}
 
-			slices.Sort(got)
-			slices.Sort(test.expectedMaxEndStrings)
 			if !reflect.DeepEqual(got, test.expectedMaxEndStrings) {
 				t.Errorf("st.MaxEnd(): got unexpected value %v; want %v", got, test.expectedMaxEndStrings)
 			}
