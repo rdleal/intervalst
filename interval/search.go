@@ -426,3 +426,37 @@ func (st *MultiValueSearchTree[V, T]) Select(k int) ([]V, bool) {
 
 	return interval.vals, true
 }
+
+// End returns the values in the tree that have the largest ending interval.
+func (st *MultiValueSearchTree[V, T]) MaxEnd() ([]V, bool) {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
+	var vals []V
+	if st.root == nil {
+		return vals, false
+	}
+
+	maxEnd(st.root, st.root.maxEnd, st.cmp, func(n *node[V, T]) {
+		vals = append(vals, n.interval.vals...)
+	})
+	return vals, true
+}
+
+func maxEnd[V, T any](n *node[V, T], searchEnd T, cmp CmpFunc[T], visit func(n *node[V, T])) {
+
+	// If this node's interval lines up with maxEnd, visit it.
+	if cmp.eq(n.interval.end, searchEnd) {
+		visit(n)
+	}
+
+	// Search left if the left subtree contains a max ending interval that is equal to the root's max ending interval.
+	if n.left != nil && cmp.eq(n.left.maxEnd, searchEnd) {
+		maxEnd(n.left, searchEnd, cmp, visit)
+	}
+
+	// Search right if the right subtree contains a max ending interval that is equal to the root's max ending interval.
+	if n.right != nil && cmp.eq(n.right.maxEnd, searchEnd) {
+		maxEnd(n.right, searchEnd, cmp, visit)
+	}
+}
