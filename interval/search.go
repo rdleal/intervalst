@@ -443,7 +443,7 @@ func (st *MultiValueSearchTree[V, T]) MaxEnd() ([]V, bool) {
 	return vals, true
 }
 
-func maxEnd[V, T any](n *node[V, T], searchEnd T, cmp CmpFunc[T], visit func(n *node[V, T])) {
+func maxEnd[V, T any](n *node[V, T], searchEnd T, cmp CmpFunc[T], visit func(*node[V, T])) {
 
 	// If this node's interval lines up with maxEnd, visit it.
 	if cmp.eq(n.interval.end, searchEnd) {
