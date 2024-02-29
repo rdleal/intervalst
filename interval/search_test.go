@@ -286,6 +286,82 @@ func TestSearchTree_Max_EmptyTree(t *testing.T) {
 	}
 }
 
+func TestSearchTree_MaxEnd(t *testing.T) {
+	type insert struct {
+		start int
+		end   int
+		val   string
+	}
+	tests := map[string]struct {
+		inserts               []insert
+		expectedMaxEndStrings []string
+	}{
+		"single interval": {
+			inserts: []insert{
+				{start: 1, end: 10, val: "node1"},
+			},
+			expectedMaxEndStrings: []string{"node1"},
+		},
+		"multiple intervals": {
+			inserts: []insert{
+				{start: 1, end: 10, val: "node1"},
+				{start: 5, end: 15, val: "node2"},
+				{start: 10, end: 20, val: "node3"},
+				{start: 15, end: 25, val: "node4"},
+				{start: 20, end: 30, val: "node5"},
+			},
+			expectedMaxEndStrings: []string{"node5"},
+		},
+		"multiple intervals with same end": {
+			inserts: []insert{
+				{start: 1, end: 10, val: "node1"},
+				{start: 5, end: 15, val: "node2"},
+				{start: 10, end: 20, val: "node3"},
+				{start: 15, end: 25, val: "node4"},
+				{start: 20, end: 30, val: "node5"},
+				{start: 25, end: 30, val: "node6"},
+			},
+			expectedMaxEndStrings: []string{"node6", "node5"},
+		},
+		"multiple intervals with same end and same start": {
+			inserts: []insert{
+				{start: 20, end: 30, val: "node5"},
+				{start: 25, end: 30, val: "node6"},
+				{start: 15, end: 30, val: "node7"},
+			},
+			expectedMaxEndStrings: []string{"node5", "node7", "node6"},
+		},
+		"interval spanning entire range": {
+			inserts: []insert{
+				{start: 1, end: 5, val: "node1"},
+				{start: 5, end: 10, val: "node2"},
+				{start: 10, end: 20, val: "node3"},
+				{start: 0, end: 30, val: "node4"},
+			},
+			expectedMaxEndStrings: []string{"node4"},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			st := NewSearchTree[string](func(x, y int) int { return x - y })
+
+			for _, insert := range test.inserts {
+				st.Insert(insert.start, insert.end, insert.val)
+			}
+
+			got, ok := st.MaxEnd()
+			if !ok {
+				t.Errorf("st.MaxEnd(): got no max end value")
+			}
+
+			if !reflect.DeepEqual(got, test.expectedMaxEndStrings) {
+				t.Errorf("st.MaxEnd(): got unexpected value %v; want %v", got, test.expectedMaxEndStrings)
+			}
+		})
+	}
+}
+
 func TestSearchTree_Ceil(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
 	defer mustBeValidTree(t, st.root)

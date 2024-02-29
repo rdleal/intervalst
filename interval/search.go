@@ -139,6 +139,23 @@ func (st *SearchTree[V, T]) Max() (V, bool) {
 	return val, true
 }
 
+// MaxEnd returns the values in the tree that have the largest ending interval.
+// It returns false as the second return value if the tree is empty; otherwise, true.
+func (st *SearchTree[V, T]) MaxEnd() ([]V, bool) {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
+	var vals []V
+	if st.root == nil {
+		return vals, false
+	}
+
+	maxEnd(st.root, st.root.maxEnd, st.cmp, func(n *node[V, T]) {
+		vals = append(vals, n.interval.val)
+	})
+	return vals, true
+}
+
 // Ceil returns a value which interval key is the smallest interval key greater than the given start and end interval.
 // It returns true as the second return value if there's a ceiling interval key for the given start and end interval
 // in the tree; otherwise, false.
