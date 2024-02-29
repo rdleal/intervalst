@@ -427,7 +427,8 @@ func (st *MultiValueSearchTree[V, T]) Select(k int) ([]V, bool) {
 	return interval.vals, true
 }
 
-// MaxEnd returns the values in the tree that have the largest ending interval. It returns false as the second return value if the tree is empty; otherwise, true.
+// MaxEnd returns the values in the tree that have the largest ending interval.
+// It returns false as the second return value if the tree is empty; otherwise, true.
 func (st *MultiValueSearchTree[V, T]) MaxEnd() ([]V, bool) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
