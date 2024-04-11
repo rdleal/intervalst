@@ -15,11 +15,11 @@ func (s InvalidIntervalError) Error() string {
 
 func newInvalidIntervalError[V, T any](it interval[V, T]) error {
 	var b strings.Builder
-	fmt.Fprintf(&b, "interval search tree invalid range: start value %v cannot be less than ", it.start)
-	if !it.allowPoint {
+	fmt.Fprintf(&b, "interval search tree invalid range: start value %v cannot be less than ", it.Start)
+	if !it.AllowPoint {
 		b.WriteString("or equal to ")
 	}
-	fmt.Fprintf(&b, "end value %v", it.end)
+	fmt.Fprintf(&b, "end value %v", it.End)
 	return InvalidIntervalError(b.String())
 }
 
@@ -53,28 +53,28 @@ func (f CmpFunc[T]) gte(x, y T) bool {
 }
 
 type interval[V, T any] struct {
-	start      T
-	end        T
-	val        V
-	vals       []V
-	allowPoint bool
+	Start      T
+	End        T
+	Val        V
+	Vals       []V
+	AllowPoint bool
 }
 
 func (it interval[V, T]) isInvalid(cmp CmpFunc[T]) bool {
-	if it.allowPoint {
-		return cmp.lt(it.end, it.start)
+	if it.AllowPoint {
+		return cmp.lt(it.End, it.Start)
 	}
-	return cmp.lte(it.end, it.start)
+	return cmp.lte(it.End, it.Start)
 }
 
 func (it interval[V, T]) less(start, end T, cmp CmpFunc[T]) bool {
-	return cmp.lt(it.start, start) || cmp.eq(it.start, start) && cmp.lt(it.end, end)
+	return cmp.lt(it.Start, start) || cmp.eq(it.Start, start) && cmp.lt(it.End, end)
 }
 
 func (it interval[V, T]) intersects(start, end T, cmp CmpFunc[T]) bool {
-	return cmp.lte(it.start, end) && cmp.lte(start, it.end)
+	return cmp.lte(it.Start, end) && cmp.lte(start, it.End)
 }
 
 func (it interval[V, T]) equal(start, end T, cmp CmpFunc[T]) bool {
-	return cmp.eq(it.start, start) && cmp.eq(it.end, end)
+	return cmp.eq(it.Start, start) && cmp.eq(it.End, end)
 }

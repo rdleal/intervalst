@@ -1,8 +1,14 @@
 package interval
 
 import (
+	"bufio"
+	"bytes"
+	"encoding/gob"
+	"errors"
 	"fmt"
 	"math/rand"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -74,7 +80,7 @@ func TestSearchTree_Size(t *testing.T) {
 
 	err := st.Delete(4, 5)
 	if err != nil {
-		t.Fatalf("st.Delete(4, 5): Got unexpected error %v", err)
+		t.Fatalf("st.Delete(4, 5): got unexpected error %v", err)
 	}
 
 	if got, want := st.Size(), s-1; got != want {
@@ -83,7 +89,7 @@ func TestSearchTree_Size(t *testing.T) {
 
 	err = st.Delete(15, 16)
 	if err != nil {
-		t.Fatalf("st.Delete(15, 16) Got unexpected error %v", err)
+		t.Fatalf("st.Delete(15, 16) got unexpected error %v", err)
 	}
 
 	if got, want := st.Size(), s-2; got != want {
@@ -173,6 +179,498 @@ func TestMultiValueSearchTree_IsEmpty(t *testing.T) {
 	})
 }
 
+func TestSearchTree_EncodingDecoding(t *testing.T) {
+	tests := []struct {
+		name string
+		tree func() *SearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with default options & empty",
+			tree: func() *SearchTree[string, int] {
+				return NewSearchTree[string, int](func(x, y int) int { return x - y })
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point & empty",
+			tree: func() *SearchTree[string, int] {
+				return NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestSearchTree_EncodingDecoding(t, tt.tree())
+		})
+	}
+}
+
+func mustTestSearchTree_EncodingDecoding(t *testing.T, st1 *SearchTree[string, int]) {
+	t.Helper()
+
+	st2 := NewSearchTree[string, int](func(x, y int) int { return x - y })
+
+	defer mustBeValidTree(t, st1.root)
+	defer mustBeValidTree(t, st2.root)
+
+	b := mustEncodeTree(t, st1)
+	mustDecodeTree(t, st2, b)
+
+	// Roots should be equal
+	if !reflect.DeepEqual(st1.root, st2.root) {
+		t.Fatal("Roots are not equal")
+	}
+
+	// Configs should be equal: st2.config must be overridden by st1.config
+	if !reflect.DeepEqual(st1.config, st2.config) {
+		t.Fatal("Configs are not equal")
+	}
+
+	// After modifying the second tree,
+	// roots should no longer be equal
+	start, end := 2, 3
+
+	err := st2.Insert(start, end, "node5")
+	if err != nil {
+		t.Fatalf("st.Insert(%v, %v): got unexpected error: %v", start, end, err)
+	}
+
+	if reflect.DeepEqual(st1.root, st2.root) {
+		t.Fatal("Roots are still equal")
+	}
+}
+
+func TestSearchTree_DecodingError(t *testing.T) {
+	tests := []struct {
+		name string
+		tree func() *SearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestSearchTree_DecodingError(t, tt.tree())
+		})
+	}
+}
+
+func mustTestSearchTree_DecodingError(t *testing.T, st1 *SearchTree[string, int]) {
+	t.Helper()
+
+	st2 := NewSearchTree[string, string](func(x, y string) int { return strings.Compare(x, y) })
+
+	b := mustEncodeTree(t, st1)
+	r := bufio.NewReader(&b)
+	dec := gob.NewDecoder(r)
+
+	err := dec.Decode(&st2)
+	if err == nil {
+		t.Fatal("got unexpected <nil> error; want not nil")
+	}
+}
+
+func TestSearchTree_DecodingTypeMismatchError(t *testing.T) {
+	tests := []struct {
+		name string
+		tree func() *MultiValueSearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with default options & empty",
+			tree: func() *MultiValueSearchTree[string, int] {
+				return NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point & empty",
+			tree: func() *MultiValueSearchTree[string, int] {
+				return NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestSearchTree_DecodingTypeMismatchError(t, tt.tree())
+		})
+	}
+}
+
+func mustTestSearchTree_DecodingTypeMismatchError(t *testing.T, st1 *MultiValueSearchTree[string, int]) {
+	t.Helper()
+
+	st2 := NewSearchTree[string, int](func(x, y int) int { return x - y })
+
+	b := mustEncodeMultiValueTree(t, st1)
+	r := bufio.NewReader(&b)
+	dec := gob.NewDecoder(r)
+
+	err := dec.Decode(&st2)
+	wantErr := TypeMismatchError{
+		from: "MultiValueSearchTree",
+		to:   "SearchTree",
+	}
+
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("got unexpected error %q; want %q", err, wantErr)
+	}
+}
+
+func mustEncodeTree[V, T any](t *testing.T, st *SearchTree[V, T]) bytes.Buffer {
+	t.Helper()
+	var b bytes.Buffer
+
+	w := bufio.NewWriter(&b)
+	enc := gob.NewEncoder(w)
+
+	err := enc.Encode(st)
+	if err != nil {
+		t.Fatalf("Encode: got unexpected error %v", err)
+	}
+
+	err = w.Flush()
+	if err != nil {
+		t.Fatalf("Flush: got unexpected error %v", err)
+	}
+
+	return b
+}
+
+func mustDecodeTree[V, T any](t *testing.T, st *SearchTree[V, T], b bytes.Buffer) {
+	t.Helper()
+
+	r := bufio.NewReader(&b)
+	dec := gob.NewDecoder(r)
+
+	err := dec.Decode(&st)
+	if err != nil {
+		t.Fatalf("Decode: got unexpected error %v", err)
+	}
+}
+
+func TestMultiValueSearchTree_EncodingDecoding(t *testing.T) {
+	tests := []struct {
+		name string
+		tree func() *MultiValueSearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with default options & empty",
+			tree: func() *MultiValueSearchTree[string, int] {
+				return NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point & empty",
+			tree: func() *MultiValueSearchTree[string, int] {
+				return NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestMultiValueSearchTree_EncodingDecoding(t, tt.tree())
+		})
+	}
+}
+
+func mustTestMultiValueSearchTree_EncodingDecoding(t *testing.T, st1 *MultiValueSearchTree[string, int]) {
+	t.Helper()
+
+	st2 := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+
+	defer mustBeValidTree(t, st1.root)
+	defer mustBeValidTree(t, st2.root)
+
+	b := mustEncodeMultiValueTree(t, st1)
+	mustDecodeMultiValueTree(t, st2, b)
+
+	// Roots should be equal
+	if !reflect.DeepEqual(st1.root, st2.root) {
+		t.Fatal("Roots are not equal")
+	}
+
+	// Configs should be equal: st2.config must be overridden by st1.config
+	if !reflect.DeepEqual(st1.config, st2.config) {
+		t.Fatal("Configs are not equal")
+	}
+
+	// After modifying the second tree,
+	// roots should no longer be equal
+	start, end := 2, 3
+
+	err := st2.Insert(start, end, "node5")
+	if err != nil {
+		t.Fatalf("st.Insert(%v, %v): got unexpected error: %v", start, end, err)
+	}
+
+	if reflect.DeepEqual(st1.root, st2.root) {
+		t.Fatal("Roots are still equal")
+	}
+}
+
+func TestMultiValueSearchTree_DecodingError(t *testing.T) {
+	tests := []struct {
+		name string
+		tree func() *MultiValueSearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestMultiValueSearchTree_DecodingError(t, tt.tree())
+		})
+	}
+}
+
+func mustTestMultiValueSearchTree_DecodingError(t *testing.T, st1 *MultiValueSearchTree[string, int]) {
+	t.Helper()
+
+	st2 := NewMultiValueSearchTree[string, string](func(x, y string) int { return strings.Compare(x, y) })
+
+	b := mustEncodeMultiValueTree(t, st1)
+	r := bufio.NewReader(&b)
+	dec := gob.NewDecoder(r)
+
+	err := dec.Decode(&st2)
+	if err == nil {
+		t.Fatal("got unexpected <nil> error; want not nil")
+	}
+}
+
+func TestMultiValueSearchTree_DecodingTypeMismatchError(t *testing.T) {
+	tests := []struct {
+		name string
+		tree func() *SearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with default options & empty",
+			tree: func() *SearchTree[string, int] {
+				return NewSearchTree[string, int](func(x, y int) int { return x - y })
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point & empty",
+			tree: func() *SearchTree[string, int] {
+				return NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestMultiValueSearchTree_DecodingTypeMismatchError(t, tt.tree())
+		})
+	}
+}
+
+func mustTestMultiValueSearchTree_DecodingTypeMismatchError(t *testing.T, st1 *SearchTree[string, int]) {
+	t.Helper()
+
+	st2 := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+
+	b := mustEncodeTree(t, st1)
+	r := bufio.NewReader(&b)
+	dec := gob.NewDecoder(r)
+
+	err := dec.Decode(&st2)
+	wantErr := TypeMismatchError{
+		from: "SearchTree",
+		to:   "MultiValueSearchTree",
+	}
+
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("got unexpected error %q; want %q", err, wantErr)
+	}
+}
+
+func mustEncodeMultiValueTree[V, T any](t *testing.T, st *MultiValueSearchTree[V, T]) bytes.Buffer {
+	t.Helper()
+	var b bytes.Buffer
+
+	w := bufio.NewWriter(&b)
+	enc := gob.NewEncoder(w)
+
+	err := enc.Encode(st)
+	if err != nil {
+		t.Fatalf("Encode: got unexpected error %v", err)
+	}
+
+	err = w.Flush()
+	if err != nil {
+		t.Fatalf("Flush: got unexpected error %v", err)
+	}
+
+	return b
+}
+
+func mustDecodeMultiValueTree[V, T any](t *testing.T, st *MultiValueSearchTree[V, T], b bytes.Buffer) {
+	t.Helper()
+
+	r := bufio.NewReader(&b)
+	dec := gob.NewDecoder(r)
+
+	err := dec.Decode(&st)
+	if err != nil {
+		t.Fatalf("Decode: got unexpected error %v", err)
+	}
+}
+
 func mustBeValidTree[V, T any](t *testing.T, root *node[V, T]) {
 	t.Helper()
 
@@ -186,7 +684,7 @@ func mustBeBalanced[V, T any](t *testing.T, root *node[V, T]) {
 	t.Helper()
 
 	var black int
-	for x := root; x != nil; x = x.left {
+	for x := root; x != nil; x = x.Left {
 		if !isRed(x) {
 			black++
 		}
@@ -205,7 +703,7 @@ func isBalanced[V, T any](h *node[V, T], black int) bool {
 		black--
 	}
 
-	return isBalanced(h.left, black) && isBalanced(h.right, black)
+	return isBalanced(h.Left, black) && isBalanced(h.Right, black)
 }
 
 // Tests if SearchTree is a 2-3 tree as left-leaning red black tree has a 1-1 correspondence to a 2-3 tree.
@@ -223,15 +721,15 @@ func isTwoThreeTree[V, T any](h *node[V, T]) bool {
 		return true
 	}
 
-	if isRed(h.right) {
+	if isRed(h.Right) {
 		return false
 	}
 
-	if isRed(h.left) && isRed(h.right) {
+	if isRed(h.Left) && isRed(h.Right) {
 		return false
 	}
 
-	return isTwoThreeTree(h.left) && isTwoThreeTree(h.right)
+	return isTwoThreeTree(h.Left) && isTwoThreeTree(h.Right)
 }
 
 // Tests if the SearchTree nodes have consistent size.
@@ -248,11 +746,11 @@ func isSizeConsistent[V, T any](h *node[V, T]) bool {
 		return true
 	}
 
-	if h.size != size(h.left)+size(h.right)+1 {
+	if h.Size != size(h.Left)+size(h.Right)+1 {
 		return false
 	}
 
-	return isSizeConsistent(h.left) && isSizeConsistent(h.right)
+	return isSizeConsistent(h.Left) && isSizeConsistent(h.Right)
 }
 
 func testGenKeys(n int64) [][]int64 {

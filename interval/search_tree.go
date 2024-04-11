@@ -20,6 +20,10 @@
 package interval
 
 import (
+	"bytes"
+	"encoding/gob"
+	"fmt"
+	"io"
 	"sync"
 )
 
@@ -39,6 +43,18 @@ func TreeWithIntervalPoint() TreeOption {
 	return func(c *TreeConfig) {
 		c.allowIntervalPoint = true
 	}
+}
+
+// TypeMismatchError represents an error that occurs when a type mismatch
+// is encountered during the decoding of a tree from its gob representation.
+// It indicates that the encoded value does not match the expected type.
+type TypeMismatchError struct {
+	from, to string
+}
+
+// Error returns a string representation of the TypeMismatchError error.
+func (e TypeMismatchError) Error() string {
+	return fmt.Sprintf("interval: cannot decode type %q into type %q", e.from, e.to)
 }
 
 // SearchTree is a generic type representing the Interval Search Tree
@@ -113,6 +129,71 @@ func (st *SearchTree[V, T]) IsEmpty() bool {
 	return st.root == nil
 }
 
+// GobEncode encodes the tree (compatible with [encoding/gob]).
+func (st *SearchTree[V, T]) GobEncode() ([]byte, error) {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	var b bytes.Buffer
+	enc := gob.NewEncoder(&b)
+
+	if err := enc.Encode(st.typeName()); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(st.config.allowIntervalPoint); err != nil {
+		return nil, err
+	}
+
+	if st.root != nil {
+		if err := enc.Encode(st.root); err != nil {
+			return nil, err
+		}
+	}
+
+	return b.Bytes(), nil
+}
+
+// GobDecode decodes the tree (compatible with [encoding/gob]).
+func (st *SearchTree[V, T]) GobDecode(data []byte) error {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
+	b := bytes.NewBuffer(data)
+	enc := gob.NewDecoder(b)
+
+	var typeName string
+	wantTypeName := st.typeName()
+
+	if err := enc.Decode(&typeName); err != nil {
+		return err
+	}
+
+	if typeName != wantTypeName {
+		return TypeMismatchError{from: typeName, to: wantTypeName}
+	}
+
+	if err := enc.Decode(&st.config.allowIntervalPoint); err != nil {
+		return err
+	}
+
+	if err := enc.Decode(&st.root); err != nil {
+		if err != io.EOF {
+			return err
+		}
+
+		// An EOF error implies that the root
+		// wasn't encoded because it was nil
+		st.root = nil
+	}
+
+	return nil
+}
+
+func (st *SearchTree[V, T]) typeName() string {
+	return "SearchTree"
+}
+
 // MultiValueSearchTree is a generic type representing the Interval Search Tree
 // where V is a generic value type, and T is a generic interval key type.
 // MultiValueSearchTree can store multiple values for a given interval key.
@@ -177,4 +258,69 @@ func (st *MultiValueSearchTree[V, T]) IsEmpty() bool {
 	defer st.mu.RUnlock()
 
 	return st.root == nil
+}
+
+// GobEncode encodes the tree (compatible with [encoding/gob]).
+func (st *MultiValueSearchTree[V, T]) GobEncode() ([]byte, error) {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
+	var b bytes.Buffer
+	enc := gob.NewEncoder(&b)
+
+	if err := enc.Encode(st.typeName()); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(st.config.allowIntervalPoint); err != nil {
+		return nil, err
+	}
+
+	if st.root != nil {
+		if err := enc.Encode(st.root); err != nil {
+			return nil, err
+		}
+	}
+
+	return b.Bytes(), nil
+}
+
+// GobDecode decodes the tree (compatible with [encoding/gob]).
+func (st *MultiValueSearchTree[V, T]) GobDecode(data []byte) error {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
+	b := bytes.NewBuffer(data)
+	enc := gob.NewDecoder(b)
+
+	var typeName string
+	wantTypeName := st.typeName()
+
+	if err := enc.Decode(&typeName); err != nil {
+		return err
+	}
+
+	if typeName != wantTypeName {
+		return TypeMismatchError{from: typeName, to: wantTypeName}
+	}
+
+	if err := enc.Decode(&st.config.allowIntervalPoint); err != nil {
+		return err
+	}
+
+	if err := enc.Decode(&st.root); err != nil {
+		if err != io.EOF {
+			return err
+		}
+
+		// An EOF error implies that the root
+		// wasn't encoded because it was nil
+		st.root = nil
+	}
+
+	return nil
+}
+
+func (st *MultiValueSearchTree[V, T]) typeName() string {
+	return "MultiValueSearchTree"
 }

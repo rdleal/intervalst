@@ -10,30 +10,30 @@ const (
 )
 
 type node[V, T any] struct {
-	interval interval[V, T]
-	maxEnd   T
-	right    *node[V, T]
-	left     *node[V, T]
-	color    color
-	size     int
+	Interval interval[V, T]
+	MaxEnd   T
+	Right    *node[V, T]
+	Left     *node[V, T]
+	Color    color
+	Size     int
 }
 
 func newNode[V, T any](intervl interval[V, T], c color) *node[V, T] {
 	return &node[V, T]{
-		interval: intervl,
-		maxEnd:   intervl.end,
-		color:    c,
-		size:     1,
+		Interval: intervl,
+		MaxEnd:   intervl.End,
+		Color:    c,
+		Size:     1,
 	}
 }
 
 func flipColors[T, V any](n *node[V, T]) {
-	n.color = !n.color
-	if n.left != nil {
-		n.left.color = !n.left.color
+	n.Color = !n.Color
+	if n.Left != nil {
+		n.Left.Color = !n.Left.Color
 	}
-	if n.right != nil {
-		n.right.color = !n.right.color
+	if n.Right != nil {
+		n.Right.Color = !n.Right.Color
 	}
 }
 
@@ -41,25 +41,25 @@ func isRed[V, T any](n *node[V, T]) bool {
 	if n == nil {
 		return false
 	}
-	return n.color == red
+	return n.Color == red
 }
 
 func min[V, T any](n *node[V, T]) *node[V, T] {
-	for n != nil && n.left != nil {
-		n = n.left
+	for n != nil && n.Left != nil {
+		n = n.Left
 	}
 	return n
 }
 
 func max[V, T any](n *node[V, T]) *node[V, T] {
-	for n != nil && n.right != nil {
-		n = n.right
+	for n != nil && n.Right != nil {
+		n = n.Right
 	}
 	return n
 }
 
 func updateSize[V, T any](n *node[V, T]) {
-	n.size = 1 + size(n.left) + size(n.right)
+	n.Size = 1 + size(n.Left) + size(n.Right)
 }
 
 func height[V, T any](n *node[V, T]) float64 {
@@ -67,35 +67,35 @@ func height[V, T any](n *node[V, T]) float64 {
 		return 0
 	}
 
-	return 1 + math.Max(height(n.left), height(n.right))
+	return 1 + math.Max(height(n.Left), height(n.Right))
 }
 
 func size[V, T any](n *node[V, T]) int {
 	if n == nil {
 		return 0
 	}
-	return n.size
+	return n.Size
 }
 
 func updateMaxEnd[V, T any](n *node[V, T], cmp CmpFunc[T]) {
-	n.maxEnd = n.interval.end
-	if n.left != nil && cmp.gt(n.left.maxEnd, n.maxEnd) {
-		n.maxEnd = n.left.maxEnd
+	n.MaxEnd = n.Interval.End
+	if n.Left != nil && cmp.gt(n.Left.MaxEnd, n.MaxEnd) {
+		n.MaxEnd = n.Left.MaxEnd
 	}
 
-	if n.right != nil && cmp.gt(n.right.maxEnd, n.maxEnd) {
-		n.maxEnd = n.right.maxEnd
+	if n.Right != nil && cmp.gt(n.Right.MaxEnd, n.MaxEnd) {
+		n.MaxEnd = n.Right.MaxEnd
 	}
 }
 
 func rotateLeft[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
-	x := n.right
-	n.right = x.left
-	x.left = n
-	x.color = n.color
-	x.maxEnd = n.maxEnd
-	n.color = red
-	x.size = n.size
+	x := n.Right
+	n.Right = x.Left
+	x.Left = n
+	x.Color = n.Color
+	x.MaxEnd = n.MaxEnd
+	n.Color = red
+	x.Size = n.Size
 
 	updateSize(n)
 	updateMaxEnd(n, cmp)
@@ -103,13 +103,13 @@ func rotateLeft[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 }
 
 func rotateRight[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
-	x := n.left
-	n.left = x.right
-	x.right = n
-	x.color = n.color
-	x.maxEnd = n.maxEnd
-	n.color = red
-	x.size = n.size
+	x := n.Left
+	n.Left = x.Right
+	x.Right = n
+	x.Color = n.Color
+	x.MaxEnd = n.MaxEnd
+	n.Color = red
+	x.Size = n.Size
 
 	updateSize(n)
 	updateMaxEnd(n, cmp)
@@ -117,15 +117,15 @@ func rotateRight[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 }
 
 func balanceNode[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
-	if isRed(n.right) && !isRed(n.left) {
+	if isRed(n.Right) && !isRed(n.Left) {
 		n = rotateLeft(n, cmp)
 	}
 
-	if isRed(n.left) && isRed(n.left.left) {
+	if isRed(n.Left) && isRed(n.Left.Left) {
 		n = rotateRight(n, cmp)
 	}
 
-	if isRed(n.left) && isRed(n.right) {
+	if isRed(n.Left) && isRed(n.Right) {
 		flipColors(n)
 	}
 
@@ -134,8 +134,8 @@ func balanceNode[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 
 func moveRedLeft[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 	flipColors(n)
-	if n.right != nil && isRed(n.right.left) {
-		n.right = rotateRight(n.right, cmp)
+	if n.Right != nil && isRed(n.Right.Left) {
+		n.Right = rotateRight(n.Right, cmp)
 		n = rotateLeft(n, cmp)
 		flipColors(n)
 	}
@@ -144,7 +144,7 @@ func moveRedLeft[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 
 func moveRedRight[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
 	flipColors(n)
-	if n.left != nil && isRed(n.left.left) {
+	if n.Left != nil && isRed(n.Left.Left) {
 		n = rotateRight(n, cmp)
 		flipColors(n)
 	}
