@@ -21,7 +21,7 @@ var timeCmp = func(start, end time.Time) int {
 func TestSearchTree_AnyIntersection_Time(t *testing.T) {
 	t.Run("HasIntersection", func(t *testing.T) {
 		st := NewSearchTree[string](timeCmp)
-		defer mustBeValidTree(t, st.root)
+		defer mustBeValidTree(t, st.Root)
 
 		start, end := time.Now(), time.Now().Add(1*time.Hour)
 		st.Insert(start, end, "date1")
@@ -46,7 +46,7 @@ func TestSearchTree_AnyIntersection_Time(t *testing.T) {
 
 	t.Run("HasExactIntersection", func(t *testing.T) {
 		st := NewSearchTree[int](timeCmp)
-		defer mustBeValidTree(t, st.root)
+		defer mustBeValidTree(t, st.Root)
 
 		start, end := time.Now(), time.Now().Add(1*time.Hour)
 		st.Insert(start, end, 0)
@@ -69,7 +69,7 @@ func TestSearchTree_AnyIntersection_Time(t *testing.T) {
 
 	t.Run("HasNoIntersection", func(t *testing.T) {
 		st := NewSearchTree[float64](timeCmp)
-		defer mustBeValidTree(t, st.root)
+		defer mustBeValidTree(t, st.Root)
 
 		start, end := time.Now(), time.Now().Add(1*time.Hour)
 		st.Insert(start, end, 0.0)
@@ -91,7 +91,7 @@ func TestSearchTree_AnyIntersection_Time(t *testing.T) {
 
 func TestSearchTree_AnyIntersection(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -151,7 +151,7 @@ func TestSearchTree_AnyIntersection_EmptyTree(t *testing.T) {
 
 func TestSearchTree_AllIntersections(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -194,7 +194,7 @@ func TestSearchTree_AllIntersections(t *testing.T) {
 
 	// Ensure that values inserted for the same interval are appended rather than replacing what's there
 	st2 := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st2.root)
+	defer mustBeValidTree(t, st2.Root)
 
 	start, end := 10, 20
 	st2.Insert(start, end, "foo")
@@ -256,7 +256,7 @@ func TestSearchTree_Min_EmptyTree(t *testing.T) {
 
 func TestSearchTree_Max(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -364,7 +364,7 @@ func TestSearchTree_MaxEnd(t *testing.T) {
 
 func TestSearchTree_Ceil(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -430,7 +430,7 @@ func TestSearchTree_Ceil_EmptyTree(t *testing.T) {
 
 func TestSearchTree_Floor(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -496,7 +496,7 @@ func TestSearchTree_Floor_EmptyTree(t *testing.T) {
 
 func TestSearchTree_Rank(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -544,7 +544,7 @@ func TestSearchTree_Rank(t *testing.T) {
 
 func TestSearchTree_Select(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -589,7 +589,7 @@ func TestSearchTree_Select(t *testing.T) {
 
 func TestMultiValueSearchTree_AnyIntersection(t *testing.T) {
 	st := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -649,7 +649,7 @@ func TestMultiValueSearchTree_AnyIntersection_EmptyTree(t *testing.T) {
 
 func TestMultiValueSearchTree_Find(t *testing.T) {
 	st := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -700,7 +700,7 @@ func TestMultiValueSearchTree_Find(t *testing.T) {
 
 func TestMultiValueSearchTree_AllIntersections(t *testing.T) {
 	st := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")
@@ -784,7 +784,7 @@ func TestMultiValueSearchTree_Min_EmptyTree(t *testing.T) {
 
 func TestMultiValueSearchTree_Max(t *testing.T) {
 	st := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.root)
+	defer mustBeValidTree(t, st.Root)
 
 	st.Insert(17, 19, "node1")
 	st.Insert(5, 8, "node2")

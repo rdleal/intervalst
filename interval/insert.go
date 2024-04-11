@@ -14,18 +14,18 @@ func (st *SearchTree[V, T]) Insert(start, end T, val V) error {
 	defer st.mu.Unlock()
 
 	intervl := interval[V, T]{
-		start:      start,
-		end:        end,
-		val:        val,
-		allowPoint: st.config.allowIntervalPoint,
+		Start:      start,
+		End:        end,
+		Val:        val,
+		AllowPoint: st.Config.AllowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
 		return newInvalidIntervalError(intervl)
 	}
 
-	st.root = upsert(st.root, intervl, st.cmp)
-	st.root.color = black
+	st.Root = upsert(st.Root, intervl, st.cmp)
+	st.Root.Color = black
 
 	return nil
 }
@@ -36,16 +36,16 @@ func upsert[V, T any](n *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *no
 	}
 
 	switch {
-	case intervl.equal(n.interval.start, n.interval.end, cmp):
-		n.interval = intervl
-	case intervl.less(n.interval.start, n.interval.end, cmp):
-		n.left = upsert(n.left, intervl, cmp)
+	case intervl.equal(n.Interval.Start, n.Interval.End, cmp):
+		n.Interval = intervl
+	case intervl.less(n.Interval.Start, n.Interval.End, cmp):
+		n.Left = upsert(n.Left, intervl, cmp)
 	default:
-		n.right = upsert(n.right, intervl, cmp)
+		n.Right = upsert(n.Right, intervl, cmp)
 	}
 
-	if cmp.gt(intervl.end, n.maxEnd) {
-		n.maxEnd = intervl.end
+	if cmp.gt(intervl.End, n.MaxEnd) {
+		n.MaxEnd = intervl.End
 	}
 
 	updateSize(n)
@@ -62,7 +62,7 @@ func (e EmptyValueListError) Error() string {
 }
 
 func newEmptyValueListError[V, T any](it interval[V, T], action string) error {
-	s := fmt.Sprintf("multi value interval search tree: cannot %s empty value list for interval (%v, %v)", action, it.start, it.end)
+	s := fmt.Sprintf("multi value interval search tree: cannot %s empty value list for interval (%v, %v)", action, it.Start, it.End)
 	return EmptyValueListError(s)
 }
 
@@ -76,10 +76,10 @@ func (st *MultiValueSearchTree[V, T]) Insert(start, end T, vals ...V) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 	intervl := interval[V, T]{
-		start:      start,
-		end:        end,
-		vals:       vals,
-		allowPoint: st.config.allowIntervalPoint,
+		Start:      start,
+		End:        end,
+		Vals:       vals,
+		AllowPoint: st.Config.AllowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
@@ -90,8 +90,8 @@ func (st *MultiValueSearchTree[V, T]) Insert(start, end T, vals ...V) error {
 		return newEmptyValueListError(intervl, "insert")
 	}
 
-	st.root = insert(st.root, intervl, st.cmp)
-	st.root.color = black
+	st.Root = insert(st.Root, intervl, st.cmp)
+	st.Root.Color = black
 
 	return nil
 }
@@ -102,16 +102,16 @@ func insert[V, T any](n *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *no
 	}
 
 	switch {
-	case intervl.equal(n.interval.start, n.interval.end, cmp):
-		n.interval.vals = append(n.interval.vals, intervl.vals...)
-	case intervl.less(n.interval.start, n.interval.end, cmp):
-		n.left = insert(n.left, intervl, cmp)
+	case intervl.equal(n.Interval.Start, n.Interval.End, cmp):
+		n.Interval.Vals = append(n.Interval.Vals, intervl.Vals...)
+	case intervl.less(n.Interval.Start, n.Interval.End, cmp):
+		n.Left = insert(n.Left, intervl, cmp)
 	default:
-		n.right = insert(n.right, intervl, cmp)
+		n.Right = insert(n.Right, intervl, cmp)
 	}
 
-	if cmp.gt(intervl.end, n.maxEnd) {
-		n.maxEnd = intervl.end
+	if cmp.gt(intervl.End, n.MaxEnd) {
+		n.MaxEnd = intervl.End
 	}
 
 	updateSize(n)
@@ -129,10 +129,10 @@ func (st *MultiValueSearchTree[V, T]) Upsert(start, end T, vals ...V) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 	intervl := interval[V, T]{
-		start:      start,
-		end:        end,
-		vals:       vals,
-		allowPoint: st.config.allowIntervalPoint,
+		Start:      start,
+		End:        end,
+		Vals:       vals,
+		AllowPoint: st.Config.AllowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
@@ -143,8 +143,8 @@ func (st *MultiValueSearchTree[V, T]) Upsert(start, end T, vals ...V) error {
 		return newEmptyValueListError(intervl, "upsert")
 	}
 
-	st.root = upsert(st.root, intervl, st.cmp)
-	st.root.color = black
+	st.Root = upsert(st.Root, intervl, st.cmp)
+	st.Root.Color = black
 
 	return nil
 }

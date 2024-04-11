@@ -186,7 +186,7 @@ func mustBeBalanced[V, T any](t *testing.T, root *node[V, T]) {
 	t.Helper()
 
 	var black int
-	for x := root; x != nil; x = x.left {
+	for x := root; x != nil; x = x.Left {
 		if !isRed(x) {
 			black++
 		}
@@ -205,7 +205,7 @@ func isBalanced[V, T any](h *node[V, T], black int) bool {
 		black--
 	}
 
-	return isBalanced(h.left, black) && isBalanced(h.right, black)
+	return isBalanced(h.Left, black) && isBalanced(h.Right, black)
 }
 
 // Tests if SearchTree is a 2-3 tree as left-leaning red black tree has a 1-1 correspondence to a 2-3 tree.
@@ -223,15 +223,15 @@ func isTwoThreeTree[V, T any](h *node[V, T]) bool {
 		return true
 	}
 
-	if isRed(h.right) {
+	if isRed(h.Right) {
 		return false
 	}
 
-	if isRed(h.left) && isRed(h.right) {
+	if isRed(h.Left) && isRed(h.Right) {
 		return false
 	}
 
-	return isTwoThreeTree(h.left) && isTwoThreeTree(h.right)
+	return isTwoThreeTree(h.Left) && isTwoThreeTree(h.Right)
 }
 
 // Tests if the SearchTree nodes have consistent size.
@@ -248,11 +248,11 @@ func isSizeConsistent[V, T any](h *node[V, T]) bool {
 		return true
 	}
 
-	if h.size != size(h.left)+size(h.right)+1 {
+	if h.Size != size(h.Left)+size(h.Right)+1 {
 		return false
 	}
 
-	return isSizeConsistent(h.left) && isSizeConsistent(h.right)
+	return isSizeConsistent(h.Left) && isSizeConsistent(h.Right)
 }
 
 func testGenKeys(n int64) [][]int64 {

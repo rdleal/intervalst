@@ -8,23 +8,23 @@ func (st *SearchTree[V, T]) Delete(start, end T) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.root == nil {
+	if st.Root == nil {
 		return nil
 	}
 
 	intervl := interval[V, T]{
-		start:      start,
-		end:        end,
-		allowPoint: st.config.allowIntervalPoint,
+		Start:      start,
+		End:        end,
+		AllowPoint: st.Config.AllowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
 		return newInvalidIntervalError(intervl)
 	}
 
-	st.root = delete(st.root, intervl, st.cmp)
-	if st.root != nil {
-		st.root.color = black
+	st.Root = delete(st.Root, intervl, st.cmp)
+	if st.Root != nil {
+		st.Root.Color = black
 	}
 
 	return nil
@@ -35,27 +35,27 @@ func delete[V, T any](n *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *no
 		return nil
 	}
 
-	if intervl.less(n.interval.start, n.interval.end, cmp) {
-		if n.left != nil && !isRed(n.left) && !isRed(n.left.left) {
+	if intervl.less(n.Interval.Start, n.Interval.End, cmp) {
+		if n.Left != nil && !isRed(n.Left) && !isRed(n.Left.Left) {
 			n = moveRedLeft(n, cmp)
 		}
-		n.left = delete(n.left, intervl, cmp)
+		n.Left = delete(n.Left, intervl, cmp)
 	} else {
-		if isRed(n.left) {
+		if isRed(n.Left) {
 			n = rotateRight(n, cmp)
 		}
-		if n.interval.equal(intervl.start, intervl.end, cmp) && n.right == nil {
+		if n.Interval.equal(intervl.Start, intervl.End, cmp) && n.Right == nil {
 			return nil
 		}
-		if n.right != nil && !isRed(n.right) && !isRed(n.right.left) {
+		if n.Right != nil && !isRed(n.Right) && !isRed(n.Right.Left) {
 			n = moveRedRight(n, cmp)
 		}
-		if n.interval.equal(intervl.start, intervl.end, cmp) {
-			minNode := min(n.right)
-			n.interval = minNode.interval
-			n.right = deleteMin(n.right, cmp)
+		if n.Interval.equal(intervl.Start, intervl.End, cmp) {
+			minNode := min(n.Right)
+			n.Interval = minNode.Interval
+			n.Right = deleteMin(n.Right, cmp)
 		} else {
-			n.right = delete(n.right, intervl, cmp)
+			n.Right = delete(n.Right, intervl, cmp)
 		}
 	}
 
@@ -65,15 +65,15 @@ func delete[V, T any](n *node[V, T], intervl interval[V, T], cmp CmpFunc[T]) *no
 }
 
 func deleteMin[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
-	if n.left == nil {
+	if n.Left == nil {
 		return nil
 	}
 
-	if !isRed(n.left) && !isRed(n.left.left) {
+	if !isRed(n.Left) && !isRed(n.Left.Left) {
 		n = moveRedLeft(n, cmp)
 	}
 
-	n.left = deleteMin(n.left, cmp)
+	n.Left = deleteMin(n.Left, cmp)
 
 	updateSize(n)
 
@@ -85,13 +85,13 @@ func (st *SearchTree[V, T]) DeleteMin() {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.root == nil {
+	if st.Root == nil {
 		return
 	}
 
-	st.root = deleteMin(st.root, st.cmp)
-	if st.root != nil {
-		st.root.color = black
+	st.Root = deleteMin(st.Root, st.cmp)
+	if st.Root != nil {
+		st.Root.Color = black
 	}
 }
 
@@ -100,30 +100,30 @@ func (st *SearchTree[V, T]) DeleteMax() {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.root == nil {
+	if st.Root == nil {
 		return
 	}
 
-	st.root = deleteMax(st.root, st.cmp)
-	if st.root != nil {
-		st.root.color = black
+	st.Root = deleteMax(st.Root, st.cmp)
+	if st.Root != nil {
+		st.Root.Color = black
 	}
 }
 
 func deleteMax[V, T any](n *node[V, T], cmp CmpFunc[T]) *node[V, T] {
-	if isRed(n.left) {
+	if isRed(n.Left) {
 		n = rotateRight(n, cmp)
 	}
 
-	if n.right == nil {
+	if n.Right == nil {
 		return nil
 	}
 
-	if !isRed(n.right) && !isRed(n.right.left) {
+	if !isRed(n.Right) && !isRed(n.Right.Left) {
 		n = moveRedRight(n, cmp)
 	}
 
-	n.right = deleteMax(n.right, cmp)
+	n.Right = deleteMax(n.Right, cmp)
 
 	updateSize(n)
 
@@ -138,23 +138,23 @@ func (st *MultiValueSearchTree[V, T]) Delete(start, end T) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.root == nil {
+	if st.Root == nil {
 		return nil
 	}
 
 	intervl := interval[V, T]{
-		start:      start,
-		end:        end,
-		allowPoint: st.config.allowIntervalPoint,
+		Start:      start,
+		End:        end,
+		AllowPoint: st.Config.AllowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
 		return newInvalidIntervalError(intervl)
 	}
 
-	st.root = delete(st.root, intervl, st.cmp)
-	if st.root != nil {
-		st.root.color = black
+	st.Root = delete(st.Root, intervl, st.cmp)
+	if st.Root != nil {
+		st.Root.Color = black
 	}
 
 	return nil
@@ -165,13 +165,13 @@ func (st *MultiValueSearchTree[V, T]) DeleteMin() {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.root == nil {
+	if st.Root == nil {
 		return
 	}
 
-	st.root = deleteMin(st.root, st.cmp)
-	if st.root != nil {
-		st.root.color = black
+	st.Root = deleteMin(st.Root, st.cmp)
+	if st.Root != nil {
+		st.Root.Color = black
 	}
 }
 
@@ -180,12 +180,12 @@ func (st *MultiValueSearchTree[V, T]) DeleteMax() {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.root == nil {
+	if st.Root == nil {
 		return
 	}
 
-	st.root = deleteMax(st.root, st.cmp)
-	if st.root != nil {
-		st.root.color = black
+	st.Root = deleteMax(st.Root, st.cmp)
+	if st.Root != nil {
+		st.Root.Color = black
 	}
 }

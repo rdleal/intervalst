@@ -26,7 +26,7 @@ import (
 // TreeConfig contains configuration fields that are used to customize the behavior
 // of interval trees, specifically SearchTree and MultiValueSearchTree types.
 type TreeConfig struct {
-	allowIntervalPoint bool
+	AllowIntervalPoint bool
 }
 
 // TreeOption is a functional option type used to customize the behavior
@@ -37,7 +37,7 @@ type TreeOption func(*TreeConfig)
 // in which the start and end key values are the same, effectively representing a point rather than a range in the tree.
 func TreeWithIntervalPoint() TreeOption {
 	return func(c *TreeConfig) {
-		c.allowIntervalPoint = true
+		c.AllowIntervalPoint = true
 	}
 }
 
@@ -47,9 +47,9 @@ func TreeWithIntervalPoint() TreeOption {
 // function and their usage in the NewSearchTreeWithOptions and NewMultiValueSearchTreeWithOptions functions.
 type SearchTree[V, T any] struct {
 	mu     sync.RWMutex // used to serialize read and write operations
-	root   *node[V, T]
+	Root   *node[V, T]
 	cmp    CmpFunc[T]
-	config TreeConfig
+	Config TreeConfig
 }
 
 // NewSearchTree returns an initialized interval search tree.
@@ -83,7 +83,7 @@ func NewSearchTreeWithOptions[V, T any](cmp CmpFunc[T], opts ...TreeOption) *Sea
 	}
 
 	for _, opt := range opts {
-		opt(&st.config)
+		opt(&st.Config)
 	}
 
 	return st
@@ -94,7 +94,7 @@ func (st *SearchTree[V, T]) Height() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return int(height(st.root))
+	return int(height(st.Root))
 }
 
 // Size returns the number of intervals in the tree.
@@ -102,7 +102,7 @@ func (st *SearchTree[V, T]) Size() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return size(st.root)
+	return size(st.Root)
 }
 
 // IsEmpty returns true if the tree is empty; otherwise, false.
@@ -110,7 +110,7 @@ func (st *SearchTree[V, T]) IsEmpty() bool {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return st.root == nil
+	return st.Root == nil
 }
 
 // MultiValueSearchTree is a generic type representing the Interval Search Tree
@@ -149,7 +149,7 @@ func NewMultiValueSearchTreeWithOptions[V, T any](cmp CmpFunc[T], opts ...TreeOp
 	}
 
 	for _, opt := range opts {
-		opt(&st.config)
+		opt(&st.Config)
 	}
 
 	return st
@@ -160,7 +160,7 @@ func (st *MultiValueSearchTree[V, T]) Height() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return int(height(st.root))
+	return int(height(st.Root))
 }
 
 // Size returns the number of intervals in the tree.
@@ -168,7 +168,7 @@ func (st *MultiValueSearchTree[V, T]) Size() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return size(st.root)
+	return size(st.Root)
 }
 
 // IsEmpty returns true if the tree is empty; otherwise, false.
@@ -176,5 +176,5 @@ func (st *MultiValueSearchTree[V, T]) IsEmpty() bool {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return st.root == nil
+	return st.Root == nil
 }
