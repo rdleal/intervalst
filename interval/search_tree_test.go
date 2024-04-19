@@ -177,6 +177,100 @@ func TestMultiValueSearchTree_IsEmpty(t *testing.T) {
 	})
 }
 
+func TestSearchTree_EncodingDecoding(t *testing.T) {
+	st := NewSearchTree[string, int](func(x, y int) int { return x - y })
+	st.Insert(17, 19, "node1")
+	st.Insert(5, 8, "node2")
+	st.Insert(21, 24, "node3")
+	st.Insert(21, 24, "node4")
+	st.Insert(4, 4, "node5")
+
+	testSearchTree_EncodingDecoding(t, st)
+}
+
+func TestSearchTreeEmpty_EncodingDecoding(t *testing.T) {
+	st := NewSearchTree[string, int](func(x, y int) int { return x - y })
+
+	testSearchTree_EncodingDecoding(t, st)
+}
+
+func TestSearchTreeWithIntervalPoint_EncodingDecoding(t *testing.T) {
+	st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+	st.Insert(17, 19, "node1")
+	st.Insert(5, 8, "node2")
+	st.Insert(21, 24, "node3")
+	st.Insert(21, 24, "node4")
+	st.Insert(4, 4, "node5")
+
+	testSearchTree_EncodingDecoding(t, st)
+}
+
+func TestSearchTreeWithIntervalPointEmpty_EncodingDecoding(t *testing.T) {
+	st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+
+	testSearchTree_EncodingDecoding(t, st)
+}
+
+func testSearchTree_EncodingDecoding(t *testing.T, st1 *SearchTree[string, int]) {
+	st2 := NewSearchTree[string, int](func(x, y int) int { return x - y })
+
+	b := encodeTree(t, st1)
+	decodeTree(t, st2, b)
+
+	// Roots should be equal
+	if !reflect.DeepEqual(st1.root, st2.root) {
+		t.Fatal("Roots are not equal")
+	}
+
+	// Configs should be equal: st2.config must be overridden by st1.config
+	if !reflect.DeepEqual(st1.config, st2.config) {
+		t.Fatal("Configs are not equal")
+	}
+
+	// After modifying the second tree,
+	// roots should no longer be equal
+	start, end := 2, 3
+
+	err := st2.Insert(start, end, "node5")
+	if err != nil {
+		t.Fatalf("st.Insert(%v, %v): got unexpected error: %v", start, end, err)
+	}
+
+	if reflect.DeepEqual(st1.root, st2.root) {
+		t.Fatal("Roots are still equal")
+	}
+
+	defer mustBeValidTree(t, st1.root)
+	defer mustBeValidTree(t, st2.root)
+}
+
+func encodeTree[V, T any](t *testing.T, st *SearchTree[V, T]) (b bytes.Buffer) {
+	w := bufio.NewWriter(&b)
+	enc := gob.NewEncoder(w)
+
+	err := enc.Encode(st)
+	if err != nil {
+		t.Fatalf("Encode: got unexpected error %v", err)
+	}
+
+	err = w.Flush()
+	if err != nil {
+		t.Fatalf("Flush: got unexpected error %v", err)
+	}
+
+	return b
+}
+
+func decodeTree[V, T any](t *testing.T, st *SearchTree[V, T], b bytes.Buffer) {
+	r := bufio.NewReader(&b)
+	dec := gob.NewDecoder(r)
+
+	err := dec.Decode(&st)
+	if err != nil {
+		t.Fatalf("Decode: got unexpected error %v", err)
+	}
+}
+
 func TestMultiValueSearchTree_EncodingDecoding(t *testing.T) {
 	st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
 	st.Insert(17, 19, "node1")

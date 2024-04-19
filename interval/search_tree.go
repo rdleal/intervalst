@@ -116,6 +116,46 @@ func (st *SearchTree[V, T]) IsEmpty() bool {
 	return st.root == nil
 }
 
+// GobEncode encodes the tree (compatible with encoding/gob).
+func (st *SearchTree[V, T]) GobEncode() ([]byte, error) {
+	var b bytes.Buffer
+	enc := gob.NewEncoder(&b)
+
+	if err := enc.Encode(st.config.allowIntervalPoint); err != nil {
+		return nil, err
+	}
+
+	if st.root != nil {
+		if err := enc.Encode(st.root); err != nil {
+			return nil, err
+		}
+	}
+
+	return b.Bytes(), nil
+}
+
+// GobDecode decodes the tree (compatible with encoding/gob).
+func (st *SearchTree[V, T]) GobDecode(data []byte) error {
+	b := bytes.NewBuffer(data)
+	enc := gob.NewDecoder(b)
+
+	if err := enc.Decode(&st.config.allowIntervalPoint); err != nil {
+		return err
+	}
+
+	if err := enc.Decode(&st.root); err != nil {
+		if err != io.EOF {
+			return err
+		}
+
+		// An EOF error implies that the root
+		// wasn't encoded because it was nil
+		st.root = nil
+	}
+
+	return nil
+}
+
 // MultiValueSearchTree is a generic type representing the Interval Search Tree
 // where V is a generic value type, and T is a generic interval key type.
 // MultiValueSearchTree can store multiple values for a given interval key.
