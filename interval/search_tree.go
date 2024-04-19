@@ -22,6 +22,7 @@ package interval
 import (
 	"bytes"
 	"encoding/gob"
+	"io"
 	"sync"
 )
 
@@ -186,12 +187,14 @@ func (st *MultiValueSearchTree[V, T]) GobEncode() ([]byte, error) {
 	var b bytes.Buffer
 	enc := gob.NewEncoder(&b)
 
-	if err := enc.Encode(st.root); err != nil {
+	if err := enc.Encode(st.config.allowIntervalPoint); err != nil {
 		return nil, err
 	}
 
-	if err := enc.Encode(st.config.allowIntervalPoint); err != nil {
-		return nil, err
+	if st.root != nil {
+		if err := enc.Encode(st.root); err != nil {
+			return nil, err
+		}
 	}
 
 	return b.Bytes(), nil
@@ -202,12 +205,18 @@ func (st *MultiValueSearchTree[V, T]) GobDecode(data []byte) error {
 	b := bytes.NewBuffer(data)
 	enc := gob.NewDecoder(b)
 
-	if err := enc.Decode(&st.root); err != nil {
+	if err := enc.Decode(&st.config.allowIntervalPoint); err != nil {
 		return err
 	}
 
-	if err := enc.Decode(&st.config.allowIntervalPoint); err != nil {
-		return err
+	if err := enc.Decode(&st.root); err != nil {
+		if err != io.EOF {
+			return err
+		}
+
+		// An EOF error implies that the root
+		// wasn't encoded because it was nil
+		st.root = nil
 	}
 
 	return nil
