@@ -9,7 +9,7 @@ import (
 
 func TestSearchTree_Insert_UpdateValue(t *testing.T) {
 	st := NewSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.Root)
+	defer mustBeValidTree(t, st.root)
 
 	st.Insert(17, 19, "value")
 	st.Insert(17, 19, "another value")
@@ -94,7 +94,7 @@ func TestSearchTree_Insert_Error(t *testing.T) {
 
 func TestMultiValueSearchTree_Insert(t *testing.T) {
 	st := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.Root)
+	defer mustBeValidTree(t, st.root)
 
 	st.Insert(1, 2, "foo")
 	st.Insert(1, 2, "foo")
@@ -197,7 +197,7 @@ func TestMultiValueSearchTree_Insert_Error(t *testing.T) {
 
 func TestMultiValueSearchTree_Upsert(t *testing.T) {
 	st := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st.Root)
+	defer mustBeValidTree(t, st.root)
 
 	vals := []string{"value1", "value2", "value3", "value4"}
 	start, end := 17, 19

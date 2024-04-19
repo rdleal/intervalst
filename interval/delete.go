@@ -8,23 +8,23 @@ func (st *SearchTree[V, T]) Delete(start, end T) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.Root == nil {
+	if st.root == nil {
 		return nil
 	}
 
 	intervl := interval[V, T]{
 		Start:      start,
 		End:        end,
-		AllowPoint: st.Config.AllowIntervalPoint,
+		AllowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
 		return newInvalidIntervalError(intervl)
 	}
 
-	st.Root = delete(st.Root, intervl, st.cmp)
-	if st.Root != nil {
-		st.Root.Color = black
+	st.root = delete(st.root, intervl, st.cmp)
+	if st.root != nil {
+		st.root.Color = black
 	}
 
 	return nil
@@ -85,13 +85,13 @@ func (st *SearchTree[V, T]) DeleteMin() {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.Root == nil {
+	if st.root == nil {
 		return
 	}
 
-	st.Root = deleteMin(st.Root, st.cmp)
-	if st.Root != nil {
-		st.Root.Color = black
+	st.root = deleteMin(st.root, st.cmp)
+	if st.root != nil {
+		st.root.Color = black
 	}
 }
 
@@ -100,13 +100,13 @@ func (st *SearchTree[V, T]) DeleteMax() {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.Root == nil {
+	if st.root == nil {
 		return
 	}
 
-	st.Root = deleteMax(st.Root, st.cmp)
-	if st.Root != nil {
-		st.Root.Color = black
+	st.root = deleteMax(st.root, st.cmp)
+	if st.root != nil {
+		st.root.Color = black
 	}
 }
 
@@ -138,23 +138,23 @@ func (st *MultiValueSearchTree[V, T]) Delete(start, end T) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.Root == nil {
+	if st.root == nil {
 		return nil
 	}
 
 	intervl := interval[V, T]{
 		Start:      start,
 		End:        end,
-		AllowPoint: st.Config.AllowIntervalPoint,
+		AllowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
 		return newInvalidIntervalError(intervl)
 	}
 
-	st.Root = delete(st.Root, intervl, st.cmp)
-	if st.Root != nil {
-		st.Root.Color = black
+	st.root = delete(st.root, intervl, st.cmp)
+	if st.root != nil {
+		st.root.Color = black
 	}
 
 	return nil
@@ -165,13 +165,13 @@ func (st *MultiValueSearchTree[V, T]) DeleteMin() {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.Root == nil {
+	if st.root == nil {
 		return
 	}
 
-	st.Root = deleteMin(st.Root, st.cmp)
-	if st.Root != nil {
-		st.Root.Color = black
+	st.root = deleteMin(st.root, st.cmp)
+	if st.root != nil {
+		st.root.Color = black
 	}
 }
 
@@ -180,12 +180,12 @@ func (st *MultiValueSearchTree[V, T]) DeleteMax() {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	if st.Root == nil {
+	if st.root == nil {
 		return
 	}
 
-	st.Root = deleteMax(st.Root, st.cmp)
-	if st.Root != nil {
-		st.Root.Color = black
+	st.root = deleteMax(st.root, st.cmp)
+	if st.root != nil {
+		st.root.Color = black
 	}
 }

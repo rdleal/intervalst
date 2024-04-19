@@ -17,15 +17,15 @@ func (st *SearchTree[V, T]) Insert(start, end T, val V) error {
 		Start:      start,
 		End:        end,
 		Val:        val,
-		AllowPoint: st.Config.AllowIntervalPoint,
+		AllowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
 		return newInvalidIntervalError(intervl)
 	}
 
-	st.Root = upsert(st.Root, intervl, st.cmp)
-	st.Root.Color = black
+	st.root = upsert(st.root, intervl, st.cmp)
+	st.root.Color = black
 
 	return nil
 }
@@ -79,7 +79,7 @@ func (st *MultiValueSearchTree[V, T]) Insert(start, end T, vals ...V) error {
 		Start:      start,
 		End:        end,
 		Vals:       vals,
-		AllowPoint: st.Config.AllowIntervalPoint,
+		AllowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
@@ -90,8 +90,8 @@ func (st *MultiValueSearchTree[V, T]) Insert(start, end T, vals ...V) error {
 		return newEmptyValueListError(intervl, "insert")
 	}
 
-	st.Root = insert(st.Root, intervl, st.cmp)
-	st.Root.Color = black
+	st.root = insert(st.root, intervl, st.cmp)
+	st.root.Color = black
 
 	return nil
 }
@@ -132,7 +132,7 @@ func (st *MultiValueSearchTree[V, T]) Upsert(start, end T, vals ...V) error {
 		Start:      start,
 		End:        end,
 		Vals:       vals,
-		AllowPoint: st.Config.AllowIntervalPoint,
+		AllowPoint: st.config.allowIntervalPoint,
 	}
 
 	if intervl.isInvalid(st.cmp) {
@@ -143,8 +143,8 @@ func (st *MultiValueSearchTree[V, T]) Upsert(start, end T, vals ...V) error {
 		return newEmptyValueListError(intervl, "upsert")
 	}
 
-	st.Root = upsert(st.Root, intervl, st.cmp)
-	st.Root.Color = black
+	st.root = upsert(st.root, intervl, st.cmp)
+	st.root.Color = black
 
 	return nil
 }

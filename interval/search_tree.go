@@ -20,13 +20,15 @@
 package interval
 
 import (
+	"bytes"
+	"encoding/gob"
 	"sync"
 )
 
 // TreeConfig contains configuration fields that are used to customize the behavior
 // of interval trees, specifically SearchTree and MultiValueSearchTree types.
 type TreeConfig struct {
-	AllowIntervalPoint bool
+	allowIntervalPoint bool
 }
 
 // TreeOption is a functional option type used to customize the behavior
@@ -37,7 +39,7 @@ type TreeOption func(*TreeConfig)
 // in which the start and end key values are the same, effectively representing a point rather than a range in the tree.
 func TreeWithIntervalPoint() TreeOption {
 	return func(c *TreeConfig) {
-		c.AllowIntervalPoint = true
+		c.allowIntervalPoint = true
 	}
 }
 
@@ -47,9 +49,9 @@ func TreeWithIntervalPoint() TreeOption {
 // function and their usage in the NewSearchTreeWithOptions and NewMultiValueSearchTreeWithOptions functions.
 type SearchTree[V, T any] struct {
 	mu     sync.RWMutex // used to serialize read and write operations
-	Root   *node[V, T]
+	root   *node[V, T]
 	cmp    CmpFunc[T]
-	Config TreeConfig
+	config TreeConfig
 }
 
 // NewSearchTree returns an initialized interval search tree.
@@ -83,7 +85,7 @@ func NewSearchTreeWithOptions[V, T any](cmp CmpFunc[T], opts ...TreeOption) *Sea
 	}
 
 	for _, opt := range opts {
-		opt(&st.Config)
+		opt(&st.config)
 	}
 
 	return st
@@ -94,7 +96,7 @@ func (st *SearchTree[V, T]) Height() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return int(height(st.Root))
+	return int(height(st.root))
 }
 
 // Size returns the number of intervals in the tree.
@@ -102,7 +104,7 @@ func (st *SearchTree[V, T]) Size() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return size(st.Root)
+	return size(st.root)
 }
 
 // IsEmpty returns true if the tree is empty; otherwise, false.
@@ -110,7 +112,7 @@ func (st *SearchTree[V, T]) IsEmpty() bool {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return st.Root == nil
+	return st.root == nil
 }
 
 // MultiValueSearchTree is a generic type representing the Interval Search Tree
@@ -149,7 +151,7 @@ func NewMultiValueSearchTreeWithOptions[V, T any](cmp CmpFunc[T], opts ...TreeOp
 	}
 
 	for _, opt := range opts {
-		opt(&st.Config)
+		opt(&st.config)
 	}
 
 	return st
@@ -160,7 +162,7 @@ func (st *MultiValueSearchTree[V, T]) Height() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return int(height(st.Root))
+	return int(height(st.root))
 }
 
 // Size returns the number of intervals in the tree.
@@ -168,7 +170,7 @@ func (st *MultiValueSearchTree[V, T]) Size() int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return size(st.Root)
+	return size(st.root)
 }
 
 // IsEmpty returns true if the tree is empty; otherwise, false.
@@ -176,5 +178,37 @@ func (st *MultiValueSearchTree[V, T]) IsEmpty() bool {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return st.Root == nil
+	return st.root == nil
+}
+
+// GobEncode encodes the tree (compatible with encoding/gob).
+func (st *MultiValueSearchTree[V, T]) GobEncode() ([]byte, error) {
+	var b bytes.Buffer
+	enc := gob.NewEncoder(&b)
+
+	if err := enc.Encode(st.root); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(st.config.allowIntervalPoint); err != nil {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
+}
+
+// GobDecode decodes the tree (compatible with encoding/gob).
+func (st *MultiValueSearchTree[V, T]) GobDecode(data []byte) error {
+	b := bytes.NewBuffer(data)
+	enc := gob.NewDecoder(b)
+
+	if err := enc.Decode(&st.root); err != nil {
+		return err
+	}
+
+	if err := enc.Decode(&st.config.allowIntervalPoint); err != nil {
+		return err
+	}
+
+	return nil
 }

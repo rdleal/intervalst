@@ -9,7 +9,7 @@ func (st *SearchTree[V, T]) Find(start, end T) (V, bool) {
 
 	var val V
 
-	interval, ok := find(st.Root, start, end, st.cmp)
+	interval, ok := find(st.root, start, end, st.cmp)
 	if !ok {
 		return val, false
 	}
@@ -45,7 +45,7 @@ func (st *SearchTree[V, T]) AnyIntersection(start, end T) (V, bool) {
 
 	var val V
 
-	interval, ok := anyIntersections(st.Root, start, end, st.cmp)
+	interval, ok := anyIntersections(st.root, start, end, st.cmp)
 	if !ok {
 		return val, false
 	}
@@ -82,11 +82,11 @@ func (st *SearchTree[V, T]) AllIntersections(start, end T) ([]V, bool) {
 	defer st.mu.RUnlock()
 
 	var vals []V
-	if st.Root == nil {
+	if st.root == nil {
 		return vals, false
 	}
 
-	searchInOrder(st.Root, start, end, st.cmp, func(it interval[V, T]) {
+	searchInOrder(st.root, start, end, st.cmp, func(it interval[V, T]) {
 		vals = append(vals, it.Val)
 	})
 
@@ -114,11 +114,11 @@ func (st *SearchTree[V, T]) Min() (V, bool) {
 	defer st.mu.RUnlock()
 
 	var val V
-	if st.Root == nil {
+	if st.root == nil {
 		return val, false
 	}
 
-	val = min(st.Root).Interval.Val
+	val = min(st.root).Interval.Val
 
 	return val, true
 }
@@ -130,11 +130,11 @@ func (st *SearchTree[V, T]) Max() (V, bool) {
 	defer st.mu.RUnlock()
 
 	var val V
-	if st.Root == nil {
+	if st.root == nil {
 		return val, false
 	}
 
-	val = max(st.Root).Interval.Val
+	val = max(st.root).Interval.Val
 
 	return val, true
 }
@@ -146,11 +146,11 @@ func (st *SearchTree[V, T]) MaxEnd() ([]V, bool) {
 	defer st.mu.Unlock()
 
 	var vals []V
-	if st.Root == nil {
+	if st.root == nil {
 		return vals, false
 	}
 
-	maxEnd(st.Root, st.Root.MaxEnd, st.cmp, func(n *node[V, T]) {
+	maxEnd(st.root, st.root.MaxEnd, st.cmp, func(n *node[V, T]) {
 		vals = append(vals, n.Interval.Val)
 	})
 	return vals, true
@@ -164,7 +164,7 @@ func (st *SearchTree[V, T]) Ceil(start, end T) (V, bool) {
 	defer st.mu.RUnlock()
 
 	var val V
-	interval, ok := ceil(st.Root, start, end, st.cmp)
+	interval, ok := ceil(st.root, start, end, st.cmp)
 	if !ok {
 		return val, false
 	}
@@ -208,7 +208,7 @@ func (st *SearchTree[V, T]) Floor(start, end T) (V, bool) {
 	defer st.mu.RUnlock()
 
 	var val V
-	interval, ok := floor(st.Root, start, end, st.cmp)
+	interval, ok := floor(st.root, start, end, st.cmp)
 	if !ok {
 		return val, false
 	}
@@ -249,7 +249,7 @@ func (st *SearchTree[V, T]) Rank(start, end T) int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return rank(st.Root, start, end, st.cmp)
+	return rank(st.root, start, end, st.cmp)
 }
 
 func rank[V, T any](root *node[V, T], start, end T, cmp CmpFunc[T]) int {
@@ -280,7 +280,7 @@ func (st *SearchTree[V, T]) Select(k int) (V, bool) {
 
 	var val V
 
-	interval, ok := selectInterval(st.Root, k)
+	interval, ok := selectInterval(st.root, k)
 	if !ok {
 		return val, false
 	}
@@ -315,7 +315,7 @@ func (st *MultiValueSearchTree[V, T]) Find(start, end T) ([]V, bool) {
 
 	var vals []V
 
-	interval, ok := find(st.Root, start, end, st.cmp)
+	interval, ok := find(st.root, start, end, st.cmp)
 	if !ok {
 		return vals, false
 	}
@@ -329,7 +329,7 @@ func (st *MultiValueSearchTree[V, T]) AnyIntersection(start, end T) ([]V, bool) 
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	interval, ok := anyIntersections(st.Root, start, end, st.cmp)
+	interval, ok := anyIntersections(st.root, start, end, st.cmp)
 	if !ok {
 		return nil, false
 	}
@@ -344,11 +344,11 @@ func (st *MultiValueSearchTree[V, T]) AllIntersections(start, end T) ([]V, bool)
 	defer st.mu.RUnlock()
 
 	var vals []V
-	if st.Root == nil {
+	if st.root == nil {
 		return vals, false
 	}
 
-	searchInOrder(st.Root, start, end, st.cmp, func(it interval[V, T]) {
+	searchInOrder(st.root, start, end, st.cmp, func(it interval[V, T]) {
 		vals = append(vals, it.Vals...)
 	})
 
@@ -362,11 +362,11 @@ func (st *MultiValueSearchTree[V, T]) Min() ([]V, bool) {
 	defer st.mu.RUnlock()
 
 	var vals []V
-	if st.Root == nil {
+	if st.root == nil {
 		return vals, false
 	}
 
-	vals = min(st.Root).Interval.Vals
+	vals = min(st.root).Interval.Vals
 
 	return vals, true
 }
@@ -378,11 +378,11 @@ func (st *MultiValueSearchTree[V, T]) Max() ([]V, bool) {
 	defer st.mu.RUnlock()
 
 	var vals []V
-	if st.Root == nil {
+	if st.root == nil {
 		return vals, false
 	}
 
-	vals = max(st.Root).Interval.Vals
+	vals = max(st.root).Interval.Vals
 
 	return vals, true
 }
@@ -395,7 +395,7 @@ func (st *MultiValueSearchTree[V, T]) Ceil(start, end T) ([]V, bool) {
 	defer st.mu.RUnlock()
 
 	var vals []V
-	interval, ok := ceil(st.Root, start, end, st.cmp)
+	interval, ok := ceil(st.root, start, end, st.cmp)
 	if !ok {
 		return vals, false
 	}
@@ -411,7 +411,7 @@ func (st *MultiValueSearchTree[V, T]) Floor(start, end T) ([]V, bool) {
 	defer st.mu.RUnlock()
 
 	var vals []V
-	interval, ok := floor(st.Root, start, end, st.cmp)
+	interval, ok := floor(st.root, start, end, st.cmp)
 	if !ok {
 		return vals, false
 	}
@@ -424,7 +424,7 @@ func (st *MultiValueSearchTree[V, T]) Rank(start, end T) int {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
-	return rank(st.Root, start, end, st.cmp)
+	return rank(st.root, start, end, st.cmp)
 }
 
 // Select returns the values which interval key is the kth smallest interval key in the tree.
@@ -436,7 +436,7 @@ func (st *MultiValueSearchTree[V, T]) Select(k int) ([]V, bool) {
 
 	var vals []V
 
-	interval, ok := selectInterval(st.Root, k)
+	interval, ok := selectInterval(st.root, k)
 	if !ok {
 		return vals, false
 	}
@@ -451,11 +451,11 @@ func (st *MultiValueSearchTree[V, T]) MaxEnd() ([]V, bool) {
 	defer st.mu.Unlock()
 
 	var vals []V
-	if st.Root == nil {
+	if st.root == nil {
 		return vals, false
 	}
 
-	maxEnd(st.Root, st.Root.MaxEnd, st.cmp, func(n *node[V, T]) {
+	maxEnd(st.root, st.root.MaxEnd, st.cmp, func(n *node[V, T]) {
 		vals = append(vals, n.Interval.Vals...)
 	})
 	return vals, true
