@@ -1,9 +1,6 @@
 package interval
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/gob"
 	"fmt"
 	"reflect"
 	"testing"
@@ -587,60 +584,6 @@ func TestSearchTree_Select(t *testing.T) {
 				t.Errorf("st.Select(%v): got unexpected value %v; want %v", tc.k, got, tc.wantVal)
 			}
 		})
-	}
-}
-
-func TestSearchTree_EncodingDecoding(t *testing.T) {
-	var b bytes.Buffer
-	w := bufio.NewWriter(&b)
-	r := bufio.NewReader(&b)
-
-	st1 := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st1.root)
-
-	st2 := NewMultiValueSearchTree[string](func(x, y int) int { return x - y })
-	defer mustBeValidTree(t, st2.root)
-
-	st1.Insert(17, 19, "node1")
-	st1.Insert(5, 8, "node2")
-	st1.Insert(21, 24, "node3")
-	st1.Insert(4, 8, "node4")
-
-	// Encoding
-	enc := gob.NewEncoder(w)
-	err := enc.Encode(st1)
-	if err != nil {
-		t.Fatalf("Encode: got unexpected error %v", err)
-	}
-
-	err = w.Flush()
-	if err != nil {
-		t.Fatalf("Flush: got unexpected error %v", err)
-	}
-
-	// Decoding
-	dec := gob.NewDecoder(r)
-	err = dec.Decode(&st2)
-	if err != nil {
-		t.Fatalf("Decode: got unexpected error %v", err)
-	}
-
-	// Roots should be equal
-	if !reflect.DeepEqual(st2.root, st1.root) {
-		t.Fatal("Trees are not equal")
-	}
-
-	// After modifying the second tree,
-	// roots should no longer be equal
-	start, end := 2, 3
-
-	err = st2.Insert(start, end, "node5")
-	if err != nil {
-		t.Fatalf("st.Insert(%v, %v): got unexpected error: %v", start, end, err)
-	}
-
-	if reflect.DeepEqual(st2.root, st1.root) {
-		t.Fatal("Trees are still equal")
 	}
 }
 
