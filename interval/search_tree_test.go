@@ -178,44 +178,67 @@ func TestMultiValueSearchTree_IsEmpty(t *testing.T) {
 }
 
 func TestSearchTree_EncodingDecoding(t *testing.T) {
-	st := NewSearchTree[string, int](func(x, y int) int { return x - y })
-	st.Insert(17, 19, "node1")
-	st.Insert(5, 8, "node2")
-	st.Insert(21, 24, "node3")
-	st.Insert(21, 24, "node4")
-	st.Insert(4, 4, "node5")
+	tests := []struct {
+		name string
+		tree func() *SearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
 
-	testSearchTree_EncodingDecoding(t, st)
+				return st
+			},
+		},
+		{
+			name: "with default options & empty",
+			tree: func() *SearchTree[string, int] {
+				return NewSearchTree[string, int](func(x, y int) int { return x - y })
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point & empty",
+			tree: func() *SearchTree[string, int] {
+				return NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestSearchTree_EncodingDecoding(t, tt.tree())
+		})
+	}
 }
 
-func TestSearchTreeEmpty_EncodingDecoding(t *testing.T) {
-	st := NewSearchTree[string, int](func(x, y int) int { return x - y })
+func mustTestSearchTree_EncodingDecoding(t *testing.T, st1 *SearchTree[string, int]) {
+	t.Helper()
 
-	testSearchTree_EncodingDecoding(t, st)
-}
-
-func TestSearchTreeWithIntervalPoint_EncodingDecoding(t *testing.T) {
-	st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
-	st.Insert(17, 19, "node1")
-	st.Insert(5, 8, "node2")
-	st.Insert(21, 24, "node3")
-	st.Insert(21, 24, "node4")
-	st.Insert(4, 4, "node5")
-
-	testSearchTree_EncodingDecoding(t, st)
-}
-
-func TestSearchTreeWithIntervalPointEmpty_EncodingDecoding(t *testing.T) {
-	st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
-
-	testSearchTree_EncodingDecoding(t, st)
-}
-
-func testSearchTree_EncodingDecoding(t *testing.T, st1 *SearchTree[string, int]) {
 	st2 := NewSearchTree[string, int](func(x, y int) int { return x - y })
 
-	b := encodeTree(t, st1)
-	decodeTree(t, st2, b)
+	defer mustBeValidTree(t, st1.root)
+	defer mustBeValidTree(t, st2.root)
+
+	b := mustEncodeTree(t, st1)
+	mustDecodeTree(t, st2, b)
 
 	// Roots should be equal
 	if !reflect.DeepEqual(st1.root, st2.root) {
@@ -239,12 +262,12 @@ func testSearchTree_EncodingDecoding(t *testing.T, st1 *SearchTree[string, int])
 	if reflect.DeepEqual(st1.root, st2.root) {
 		t.Fatal("Roots are still equal")
 	}
-
-	defer mustBeValidTree(t, st1.root)
-	defer mustBeValidTree(t, st2.root)
 }
 
-func encodeTree[V, T any](t *testing.T, st *SearchTree[V, T]) (b bytes.Buffer) {
+func mustEncodeTree[V, T any](t *testing.T, st *SearchTree[V, T]) bytes.Buffer {
+	t.Helper()
+	var b bytes.Buffer
+
 	w := bufio.NewWriter(&b)
 	enc := gob.NewEncoder(w)
 
@@ -261,7 +284,9 @@ func encodeTree[V, T any](t *testing.T, st *SearchTree[V, T]) (b bytes.Buffer) {
 	return b
 }
 
-func decodeTree[V, T any](t *testing.T, st *SearchTree[V, T], b bytes.Buffer) {
+func mustDecodeTree[V, T any](t *testing.T, st *SearchTree[V, T], b bytes.Buffer) {
+	t.Helper()
+
 	r := bufio.NewReader(&b)
 	dec := gob.NewDecoder(r)
 
@@ -272,44 +297,67 @@ func decodeTree[V, T any](t *testing.T, st *SearchTree[V, T], b bytes.Buffer) {
 }
 
 func TestMultiValueSearchTree_EncodingDecoding(t *testing.T) {
-	st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
-	st.Insert(17, 19, "node1")
-	st.Insert(5, 8, "node2")
-	st.Insert(21, 24, "node3")
-	st.Insert(21, 24, "node4")
-	st.Insert(4, 4, "node5")
+	tests := []struct {
+		name string
+		tree func() *MultiValueSearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
 
-	testMultiValueSearchTree_EncodingDecoding(t, st)
+				return st
+			},
+		},
+		{
+			name: "with default options & empty",
+			tree: func() *MultiValueSearchTree[string, int] {
+				return NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point & empty",
+			tree: func() *MultiValueSearchTree[string, int] {
+				return NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestMultiValueSearchTree_EncodingDecoding(t, tt.tree())
+		})
+	}
 }
 
-func TestMultiValueSearchTreeEmpty_EncodingDecoding(t *testing.T) {
-	st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+func mustTestMultiValueSearchTree_EncodingDecoding(t *testing.T, st1 *MultiValueSearchTree[string, int]) {
+	t.Helper()
 
-	testMultiValueSearchTree_EncodingDecoding(t, st)
-}
-
-func TestMultiValueSearchTreeWithIntervalPoint_EncodingDecoding(t *testing.T) {
-	st := NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
-	st.Insert(17, 19, "node1")
-	st.Insert(5, 8, "node2")
-	st.Insert(21, 24, "node3")
-	st.Insert(21, 24, "node4")
-	st.Insert(4, 4, "node5")
-
-	testMultiValueSearchTree_EncodingDecoding(t, st)
-}
-
-func TestMultiValueSearchTreeWithIntervalPointEmpty_EncodingDecoding(t *testing.T) {
-	st := NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
-
-	testMultiValueSearchTree_EncodingDecoding(t, st)
-}
-
-func testMultiValueSearchTree_EncodingDecoding(t *testing.T, st1 *MultiValueSearchTree[string, int]) {
 	st2 := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
 
-	b := encodeMultiValueTree(t, st1)
-	decodeMultiValueTree(t, st2, b)
+	defer mustBeValidTree(t, st1.root)
+	defer mustBeValidTree(t, st2.root)
+
+	b := mustEncodeMultiValueTree(t, st1)
+	mustDecodeMultiValueTree(t, st2, b)
 
 	// Roots should be equal
 	if !reflect.DeepEqual(st1.root, st2.root) {
@@ -333,12 +381,12 @@ func testMultiValueSearchTree_EncodingDecoding(t *testing.T, st1 *MultiValueSear
 	if reflect.DeepEqual(st1.root, st2.root) {
 		t.Fatal("Roots are still equal")
 	}
-
-	defer mustBeValidTree(t, st1.root)
-	defer mustBeValidTree(t, st2.root)
 }
 
-func encodeMultiValueTree[V, T any](t *testing.T, st *MultiValueSearchTree[V, T]) (b bytes.Buffer) {
+func mustEncodeMultiValueTree[V, T any](t *testing.T, st *MultiValueSearchTree[V, T]) bytes.Buffer {
+	t.Helper()
+	var b bytes.Buffer
+
 	w := bufio.NewWriter(&b)
 	enc := gob.NewEncoder(w)
 
@@ -355,7 +403,9 @@ func encodeMultiValueTree[V, T any](t *testing.T, st *MultiValueSearchTree[V, T]
 	return b
 }
 
-func decodeMultiValueTree[V, T any](t *testing.T, st *MultiValueSearchTree[V, T], b bytes.Buffer) {
+func mustDecodeMultiValueTree[V, T any](t *testing.T, st *MultiValueSearchTree[V, T], b bytes.Buffer) {
+	t.Helper()
+
 	r := bufio.NewReader(&b)
 	dec := gob.NewDecoder(r)
 
