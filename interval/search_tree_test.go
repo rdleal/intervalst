@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -264,6 +265,61 @@ func mustTestSearchTree_EncodingDecoding(t *testing.T, st1 *SearchTree[string, i
 	}
 }
 
+func TestSearchTree_DecodingError(t *testing.T) {
+	tests := []struct {
+		name string
+		tree func() *SearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestSearchTree_DecodingError(t, tt.tree())
+		})
+	}
+}
+
+func mustTestSearchTree_DecodingError(t *testing.T, st1 *SearchTree[string, int]) {
+	t.Helper()
+
+	st2 := NewSearchTree[string, string](func(x, y string) int { return strings.Compare(x, y) })
+
+	b := mustEncodeTree(t, st1)
+	r := bufio.NewReader(&b)
+	dec := gob.NewDecoder(r)
+
+	err := dec.Decode(&st2)
+	if err == nil {
+		t.Fatal("got unexpected <nil> error; want not nil")
+	}
+}
+
 func mustEncodeTree[V, T any](t *testing.T, st *SearchTree[V, T]) bytes.Buffer {
 	t.Helper()
 	var b bytes.Buffer
@@ -380,6 +436,61 @@ func mustTestMultiValueSearchTree_EncodingDecoding(t *testing.T, st1 *MultiValue
 
 	if reflect.DeepEqual(st1.root, st2.root) {
 		t.Fatal("Roots are still equal")
+	}
+}
+
+func TestMultiValueSearchTree_DecodingError(t *testing.T) {
+	tests := []struct {
+		name string
+		tree func() *MultiValueSearchTree[string, int]
+	}{
+		{
+			name: "with default options",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+		{
+			name: "with interval point",
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+				st.Insert(17, 19, "node1")
+				st.Insert(5, 8, "node2")
+				st.Insert(21, 24, "node3")
+				st.Insert(21, 24, "node4")
+				st.Insert(4, 4, "node5")
+
+				return st
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mustTestMultiValueSearchTree_DecodingError(t, tt.tree())
+		})
+	}
+}
+
+func mustTestMultiValueSearchTree_DecodingError(t *testing.T, st1 *MultiValueSearchTree[string, int]) {
+	t.Helper()
+
+	st2 := NewMultiValueSearchTree[string, string](func(x, y string) int { return strings.Compare(x, y) })
+
+	b := mustEncodeMultiValueTree(t, st1)
+	r := bufio.NewReader(&b)
+	dec := gob.NewDecoder(r)
+
+	err := dec.Decode(&st2)
+	if err == nil {
+		t.Fatal("got unexpected <nil> error; want not nil")
 	}
 }
 
