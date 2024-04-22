@@ -116,7 +116,7 @@ func (st *SearchTree[V, T]) IsEmpty() bool {
 	return st.root == nil
 }
 
-// GobEncode encodes the tree (compatible with encoding/gob).
+// GobEncode encodes the tree (compatible with [encoding/gob]).
 func (st *SearchTree[V, T]) GobEncode() ([]byte, error) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
@@ -137,7 +137,7 @@ func (st *SearchTree[V, T]) GobEncode() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// GobDecode decodes the tree (compatible with encoding/gob).
+// GobDecode decodes the tree (compatible with [encoding/gob]).
 func (st *SearchTree[V, T]) GobDecode(data []byte) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
@@ -228,7 +228,7 @@ func (st *MultiValueSearchTree[V, T]) IsEmpty() bool {
 	return st.root == nil
 }
 
-// GobEncode encodes the tree (compatible with encoding/gob).
+// GobEncode encodes the tree (compatible with [encoding/gob]).
 func (st *MultiValueSearchTree[V, T]) GobEncode() ([]byte, error) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
@@ -249,7 +249,7 @@ func (st *MultiValueSearchTree[V, T]) GobEncode() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// GobDecode decodes the tree (compatible with encoding/gob).
+// GobDecode decodes the tree (compatible with [encoding/gob]).
 func (st *MultiValueSearchTree[V, T]) GobDecode(data []byte) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
