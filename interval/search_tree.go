@@ -118,6 +118,9 @@ func (st *SearchTree[V, T]) IsEmpty() bool {
 
 // GobEncode encodes the tree (compatible with encoding/gob).
 func (st *SearchTree[V, T]) GobEncode() ([]byte, error) {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
 	var b bytes.Buffer
 	enc := gob.NewEncoder(&b)
 
@@ -136,6 +139,9 @@ func (st *SearchTree[V, T]) GobEncode() ([]byte, error) {
 
 // GobDecode decodes the tree (compatible with encoding/gob).
 func (st *SearchTree[V, T]) GobDecode(data []byte) error {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
 	b := bytes.NewBuffer(data)
 	enc := gob.NewDecoder(b)
 
@@ -224,6 +230,9 @@ func (st *MultiValueSearchTree[V, T]) IsEmpty() bool {
 
 // GobEncode encodes the tree (compatible with encoding/gob).
 func (st *MultiValueSearchTree[V, T]) GobEncode() ([]byte, error) {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
+
 	var b bytes.Buffer
 	enc := gob.NewEncoder(&b)
 
@@ -242,6 +251,9 @@ func (st *MultiValueSearchTree[V, T]) GobEncode() ([]byte, error) {
 
 // GobDecode decodes the tree (compatible with encoding/gob).
 func (st *MultiValueSearchTree[V, T]) GobDecode(data []byte) error {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+
 	b := bytes.NewBuffer(data)
 	enc := gob.NewDecoder(b)
 
