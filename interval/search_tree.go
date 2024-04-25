@@ -22,6 +22,7 @@ package interval
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"io"
 	"sync"
 )
@@ -42,6 +43,18 @@ func TreeWithIntervalPoint() TreeOption {
 	return func(c *TreeConfig) {
 		c.allowIntervalPoint = true
 	}
+}
+
+// TypeMismatchError represents an error that occurs when a type mismatch
+// is encountered during the decoding of a tree from its gob representation.
+// It indicates that the encoded value does not match the expected type.
+type TypeMismatchError struct {
+	from, to string
+}
+
+// Error returns a string representation of the TypeMismatchError error.
+func (e TypeMismatchError) Error() string {
+	return fmt.Sprintf("interval: cannot decode type %q into type %q", e.from, e.to)
 }
 
 // SearchTree is a generic type representing the Interval Search Tree
@@ -124,6 +137,10 @@ func (st *SearchTree[V, T]) GobEncode() ([]byte, error) {
 	var b bytes.Buffer
 	enc := gob.NewEncoder(&b)
 
+	if err := enc.Encode("SearchTree"); err != nil {
+		return nil, err
+	}
+
 	if err := enc.Encode(st.config.allowIntervalPoint); err != nil {
 		return nil, err
 	}
@@ -144,6 +161,17 @@ func (st *SearchTree[V, T]) GobDecode(data []byte) error {
 
 	b := bytes.NewBuffer(data)
 	enc := gob.NewDecoder(b)
+
+	var typeName string
+	wantTypeName := "SearchTree"
+
+	if err := enc.Decode(&typeName); err != nil {
+		return err
+	}
+
+	if typeName != wantTypeName {
+		return TypeMismatchError{from: typeName, to: wantTypeName}
+	}
 
 	if err := enc.Decode(&st.config.allowIntervalPoint); err != nil {
 		return err
@@ -236,6 +264,10 @@ func (st *MultiValueSearchTree[V, T]) GobEncode() ([]byte, error) {
 	var b bytes.Buffer
 	enc := gob.NewEncoder(&b)
 
+	if err := enc.Encode("MultiValueSearchTree"); err != nil {
+		return nil, err
+	}
+
 	if err := enc.Encode(st.config.allowIntervalPoint); err != nil {
 		return nil, err
 	}
@@ -256,6 +288,17 @@ func (st *MultiValueSearchTree[V, T]) GobDecode(data []byte) error {
 
 	b := bytes.NewBuffer(data)
 	enc := gob.NewDecoder(b)
+
+	var typeName string
+	wantTypeName := "MultiValueSearchTree"
+
+	if err := enc.Decode(&typeName); err != nil {
+		return err
+	}
+
+	if typeName != wantTypeName {
+		return TypeMismatchError{from: typeName, to: wantTypeName}
+	}
 
 	if err := enc.Decode(&st.config.allowIntervalPoint); err != nil {
 		return err
