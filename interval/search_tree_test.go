@@ -323,12 +323,12 @@ func mustTestSearchTree_DecodingError(t *testing.T, st1 *SearchTree[string, int]
 func TestSearchTree_DecodingTypeMismatchError(t *testing.T) {
 	tests := []struct {
 		name string
-		tree func() *MultiValueSearchTree[string, int]
+		tree func() *SearchTree[string, int]
 	}{
 		{
 			name: "with default options",
-			tree: func() *MultiValueSearchTree[string, int] {
-				st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTree[string, int](func(x, y int) int { return x - y })
 				st.Insert(17, 19, "node1")
 				st.Insert(5, 8, "node2")
 				st.Insert(21, 24, "node3")
@@ -340,14 +340,14 @@ func TestSearchTree_DecodingTypeMismatchError(t *testing.T) {
 		},
 		{
 			name: "with default options & empty",
-			tree: func() *MultiValueSearchTree[string, int] {
-				return NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+			tree: func() *SearchTree[string, int] {
+				return NewSearchTree[string, int](func(x, y int) int { return x - y })
 			},
 		},
 		{
 			name: "with interval point",
-			tree: func() *MultiValueSearchTree[string, int] {
-				st := NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			tree: func() *SearchTree[string, int] {
+				st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
 				st.Insert(17, 19, "node1")
 				st.Insert(5, 8, "node2")
 				st.Insert(21, 24, "node3")
@@ -359,8 +359,8 @@ func TestSearchTree_DecodingTypeMismatchError(t *testing.T) {
 		},
 		{
 			name: "with interval point & empty",
-			tree: func() *MultiValueSearchTree[string, int] {
-				return NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			tree: func() *SearchTree[string, int] {
+				return NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
 			},
 		},
 	}
@@ -372,18 +372,22 @@ func TestSearchTree_DecodingTypeMismatchError(t *testing.T) {
 	}
 }
 
-func mustTestSearchTree_DecodingTypeMismatchError(t *testing.T, st1 *MultiValueSearchTree[string, int]) {
+func mustTestSearchTree_DecodingTypeMismatchError(t *testing.T, st1 *SearchTree[string, int]) {
 	t.Helper()
 
-	st2 := NewSearchTree[string, int](func(x, y int) int { return x - y })
+	st2 := NewSearchTree[string, string](func(x, y string) int { return strings.Compare(x, y) })
 
-	b := mustEncodeMultiValueTree(t, st1)
+	b := mustEncodeTree(t, st1)
 	r := bufio.NewReader(&b)
 	dec := gob.NewDecoder(r)
 
 	err := dec.Decode(&st2)
 	if err == nil {
-		t.Fatal("interval: cannot decode type MultiValueSearchTree into type SearchTree")
+		t.Fatal("got unexpected <nil> error; want not nil")
+	}
+
+	if err.Error() != `interval: cannot decode type "SearchTree[string, int]" into type "SearchTree[string, string]"` {
+		t.Fatalf("got unexpected error: %v", err.Error())
 	}
 }
 
@@ -564,12 +568,12 @@ func mustTestMultiValueSearchTree_DecodingError(t *testing.T, st1 *MultiValueSea
 func TestMultiValueSearchTree_DecodingTypeMismatchError(t *testing.T) {
 	tests := []struct {
 		name string
-		tree func() *SearchTree[string, int]
+		tree func() *MultiValueSearchTree[string, int]
 	}{
 		{
 			name: "with default options",
-			tree: func() *SearchTree[string, int] {
-				st := NewSearchTree[string, int](func(x, y int) int { return x - y })
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
 				st.Insert(17, 19, "node1")
 				st.Insert(5, 8, "node2")
 				st.Insert(21, 24, "node3")
@@ -581,14 +585,14 @@ func TestMultiValueSearchTree_DecodingTypeMismatchError(t *testing.T) {
 		},
 		{
 			name: "with default options & empty",
-			tree: func() *SearchTree[string, int] {
-				return NewSearchTree[string, int](func(x, y int) int { return x - y })
+			tree: func() *MultiValueSearchTree[string, int] {
+				return NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
 			},
 		},
 		{
 			name: "with interval point",
-			tree: func() *SearchTree[string, int] {
-				st := NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			tree: func() *MultiValueSearchTree[string, int] {
+				st := NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
 				st.Insert(17, 19, "node1")
 				st.Insert(5, 8, "node2")
 				st.Insert(21, 24, "node3")
@@ -600,8 +604,8 @@ func TestMultiValueSearchTree_DecodingTypeMismatchError(t *testing.T) {
 		},
 		{
 			name: "with interval point & empty",
-			tree: func() *SearchTree[string, int] {
-				return NewSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
+			tree: func() *MultiValueSearchTree[string, int] {
+				return NewMultiValueSearchTreeWithOptions[string, int](func(x, y int) int { return x - y }, TreeWithIntervalPoint())
 			},
 		},
 	}
@@ -613,18 +617,22 @@ func TestMultiValueSearchTree_DecodingTypeMismatchError(t *testing.T) {
 	}
 }
 
-func mustTestMultiValueSearchTree_DecodingTypeMismatchError(t *testing.T, st1 *SearchTree[string, int]) {
+func mustTestMultiValueSearchTree_DecodingTypeMismatchError(t *testing.T, st1 *MultiValueSearchTree[string, int]) {
 	t.Helper()
 
-	st2 := NewMultiValueSearchTree[string, int](func(x, y int) int { return x - y })
+	st2 := NewMultiValueSearchTree[string, string](func(x, y string) int { return strings.Compare(x, y) })
 
-	b := mustEncodeTree(t, st1)
+	b := mustEncodeMultiValueTree(t, st1)
 	r := bufio.NewReader(&b)
 	dec := gob.NewDecoder(r)
 
 	err := dec.Decode(&st2)
 	if err == nil {
-		t.Fatal("interval: cannot decode type SearchTree into type MultiValueSearchTree")
+		t.Fatal("got unexpected <nil> error; want not nil")
+	}
+
+	if err.Error() != `interval: cannot decode type "MultiValueSearchTree[string, int]" into type "MultiValueSearchTree[string, string]"` {
+		t.Fatalf("got unexpected error: %v", err.Error())
 	}
 }
 

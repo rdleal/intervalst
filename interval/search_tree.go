@@ -24,6 +24,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
+	"reflect"
 	"sync"
 )
 
@@ -137,7 +138,7 @@ func (st *SearchTree[V, T]) GobEncode() ([]byte, error) {
 	var b bytes.Buffer
 	enc := gob.NewEncoder(&b)
 
-	if err := enc.Encode("SearchTree"); err != nil {
+	if err := enc.Encode(st.typeName()); err != nil {
 		return nil, err
 	}
 
@@ -163,7 +164,7 @@ func (st *SearchTree[V, T]) GobDecode(data []byte) error {
 	enc := gob.NewDecoder(b)
 
 	var typeName string
-	wantTypeName := "SearchTree"
+	wantTypeName := st.typeName()
 
 	if err := enc.Decode(&typeName); err != nil {
 		return err
@@ -188,6 +189,17 @@ func (st *SearchTree[V, T]) GobDecode(data []byte) error {
 	}
 
 	return nil
+}
+
+func (st *SearchTree[V, T]) typeName() string {
+	var v [0]V
+	var t [0]T
+
+	return fmt.Sprintf(
+		"SearchTree[%v, %v]",
+		reflect.TypeOf(v).Elem().Name(),
+		reflect.TypeOf(t).Elem().Name(),
+	)
 }
 
 // MultiValueSearchTree is a generic type representing the Interval Search Tree
@@ -264,7 +276,7 @@ func (st *MultiValueSearchTree[V, T]) GobEncode() ([]byte, error) {
 	var b bytes.Buffer
 	enc := gob.NewEncoder(&b)
 
-	if err := enc.Encode("MultiValueSearchTree"); err != nil {
+	if err := enc.Encode(st.typeName()); err != nil {
 		return nil, err
 	}
 
@@ -290,7 +302,7 @@ func (st *MultiValueSearchTree[V, T]) GobDecode(data []byte) error {
 	enc := gob.NewDecoder(b)
 
 	var typeName string
-	wantTypeName := "MultiValueSearchTree"
+	wantTypeName := st.typeName()
 
 	if err := enc.Decode(&typeName); err != nil {
 		return err
@@ -315,4 +327,15 @@ func (st *MultiValueSearchTree[V, T]) GobDecode(data []byte) error {
 	}
 
 	return nil
+}
+
+func (st *MultiValueSearchTree[V, T]) typeName() string {
+	var v [0]V
+	var t [0]T
+
+	return fmt.Sprintf(
+		"MultiValueSearchTree[%v, %v]",
+		reflect.TypeOf(v).Elem().Name(),
+		reflect.TypeOf(t).Elem().Name(),
+	)
 }
