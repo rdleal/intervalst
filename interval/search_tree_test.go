@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -382,12 +383,13 @@ func mustTestSearchTree_DecodingTypeMismatchError(t *testing.T, st1 *MultiValueS
 	dec := gob.NewDecoder(r)
 
 	err := dec.Decode(&st2)
-	if err == nil {
-		t.Fatal("got unexpected <nil> error; want not nil")
+	wantErr := TypeMismatchError{
+		from: "MultiValueSearchTree",
+		to:   "SearchTree",
 	}
 
-	if err.Error() != `interval: cannot decode type "MultiValueSearchTree" into type "SearchTree"` {
-		t.Fatalf("got unexpected error: %v", err.Error())
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("got unexpected error %q; want %q", err, wantErr)
 	}
 }
 
@@ -627,12 +629,13 @@ func mustTestMultiValueSearchTree_DecodingTypeMismatchError(t *testing.T, st1 *S
 	dec := gob.NewDecoder(r)
 
 	err := dec.Decode(&st2)
-	if err == nil {
-		t.Fatal("got unexpected <nil> error; want not nil")
+	wantErr := TypeMismatchError{
+		from: "SearchTree",
+		to:   "MultiValueSearchTree",
 	}
 
-	if err.Error() != `interval: cannot decode type "SearchTree" into type "MultiValueSearchTree"` {
-		t.Fatalf("got unexpected error: %v", err.Error())
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("got unexpected error %q; want %q", err, wantErr)
 	}
 }
 
