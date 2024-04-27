@@ -24,7 +24,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
-	"reflect"
 	"sync"
 )
 
@@ -192,14 +191,7 @@ func (st *SearchTree[V, T]) GobDecode(data []byte) error {
 }
 
 func (st *SearchTree[V, T]) typeName() string {
-	var v [0]V
-	var t [0]T
-
-	return fmt.Sprintf(
-		"SearchTree[%v, %v]",
-		reflect.TypeOf(v).Elem().Name(),
-		reflect.TypeOf(t).Elem().Name(),
-	)
+	return "SearchTree"
 }
 
 // MultiValueSearchTree is a generic type representing the Interval Search Tree
@@ -330,12 +322,5 @@ func (st *MultiValueSearchTree[V, T]) GobDecode(data []byte) error {
 }
 
 func (st *MultiValueSearchTree[V, T]) typeName() string {
-	var v [0]V
-	var t [0]T
-
-	return fmt.Sprintf(
-		"MultiValueSearchTree[%v, %v]",
-		reflect.TypeOf(v).Elem().Name(),
-		reflect.TypeOf(t).Elem().Name(),
-	)
+	return "MultiValueSearchTree"
 }
