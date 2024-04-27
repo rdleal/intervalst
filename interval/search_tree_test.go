@@ -80,7 +80,7 @@ func TestSearchTree_Size(t *testing.T) {
 
 	err := st.Delete(4, 5)
 	if err != nil {
-		t.Fatalf("st.Delete(4, 5): Got unexpected error %v", err)
+		t.Fatalf("st.Delete(4, 5): got unexpected error %v", err)
 	}
 
 	if got, want := st.Size(), s-1; got != want {
@@ -89,7 +89,7 @@ func TestSearchTree_Size(t *testing.T) {
 
 	err = st.Delete(15, 16)
 	if err != nil {
-		t.Fatalf("st.Delete(15, 16) Got unexpected error %v", err)
+		t.Fatalf("st.Delete(15, 16) got unexpected error %v", err)
 	}
 
 	if got, want := st.Size(), s-2; got != want {
