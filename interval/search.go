@@ -478,3 +478,66 @@ func maxEnd[V, T any](n *node[V, T], searchEnd T, cmp CmpFunc[T], visit func(*no
 		maxEnd(n.Right, searchEnd, cmp, visit)
 	}
 }
+
+// VisitFunc is called on all values. Returning false will stop iteration, so will an error.
+type VisitFunc[V, T any] func(V, T) (bool, error)
+
+// InOrderTraverse traverses the tree in order and applies VisitFunc to each node.
+func (tree *SearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
+	tree.mu.RLock()
+	defer tree.mu.RUnlock()
+
+	var inOrder func(n *node[V, T]) (bool, error)
+	inOrder = func(n *node[V, T]) (bool, error) {
+		if n == nil {
+			return true, nil
+		}
+
+		// Visit left child
+		if ok, err := inOrder(n.Left); !ok || err != nil {
+			return ok, err
+		}
+
+		// Visit current node
+		continueTraversal, err := visitFunc(n.Interval.Val, n.Interval.Start)
+		if !continueTraversal || err != nil {
+			return continueTraversal, err
+		}
+
+		// Visit right child
+		return inOrder(n.Right)
+	}
+
+	_, err := inOrder(tree.root)
+	return err
+}
+
+// InOrderTraverse traverses the tree in order and applies VisitFunc to each node.
+func (tree *MultiValueSearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
+	tree.mu.RLock()
+	defer tree.mu.RUnlock()
+
+	var inOrder func(n *node[V, T]) (bool, error)
+	inOrder = func(n *node[V, T]) (bool, error) {
+		if n == nil {
+			return true, nil
+		}
+
+		// Visit left child
+		if ok, err := inOrder(n.Left); !ok || err != nil {
+			return ok, err
+		}
+
+		// Visit current node
+		continueTraversal, err := visitFunc(n.Interval.Val, n.Interval.Start)
+		if !continueTraversal || err != nil {
+			return continueTraversal, err
+		}
+
+		// Visit right child
+		return inOrder(n.Right)
+	}
+
+	_, err := inOrder(tree.root)
+	return err
+}
