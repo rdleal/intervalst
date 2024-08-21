@@ -492,28 +492,32 @@ func (tree *SearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
 	tree.mu.RLock()
 	defer tree.mu.RUnlock()
 
-	var inOrder func(n *node[V, T]) (bool, error)
-	inOrder = func(n *node[V, T]) (bool, error) {
+	var inOrder func(n *node[V, T]) error
+	inOrder = func(n *node[V, T]) error {
 		if n == nil {
-			return true, nil
+			return nil
 		}
 
 		// Visit left child
-		if ok, err := inOrder(n.Left); !ok || err != nil {
-			return ok, err
+		if err := inOrder(n.Left); err != nil {
+			return err
 		}
 
 		// Visit current node
-		continueTraversal, err := visitFunc(n.Interval.Val, n.Interval.Start)
-		if !continueTraversal || err != nil {
-			return continueTraversal, err
+		err := visitFunc(n.Interval.Val, n.Interval.Start)
+		if err != nil {
+			return err
 		}
 
 		// Visit right child
 		return inOrder(n.Right)
 	}
 
-	_, err := inOrder(tree.root)
+	err := inOrder(tree.root)
+	// Do not percolate StopTraversal error to the caller.
+	if errors.Is(err, StopTraversal) {
+	        return nil
+	}
 	return err
 }
 
