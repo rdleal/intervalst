@@ -521,7 +521,7 @@ func (tree *SearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
 	return err
 }
 
-// InOrderTraverse traverses the tree in order and applies VisitFunc to each node.
+// InOrderTraverse traverses the tree in order and applies VisitFunc to each node. It's safe for concurrent use. To prevent deadlock, avoid calling other tree methods within visitFunc.
 func (tree *MultiValueSearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
 	tree.mu.RLock()
 	defer tree.mu.RUnlock()
