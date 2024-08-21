@@ -479,8 +479,13 @@ func maxEnd[V, T any](n *node[V, T], searchEnd T, cmp CmpFunc[T], visit func(*no
 	}
 }
 
-// VisitFunc is called on all values. Returning false will stop iteration, so will an error.
-type VisitFunc[V, T any] func(V, T) (bool, error)
+// StopTraversal is used as a return value from [VisitFunc] to indicate that the iteration is to be stopped.
+// It is not returned as an error by any function.
+var StopTraversal = errors.New("stop tree traversal")
+
+// VisitFunc is called on all values. Returning non-nil error will stop iteration.
+// If the returned error is [StopTraversal], the iteration is interrupted, but no error is returned to the caller. 
+type VisitFunc[V, T any] func(V, T) error
 
 // InOrderTraverse traverses the tree in order and applies VisitFunc to each node.
 func (tree *SearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
