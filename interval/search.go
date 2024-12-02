@@ -1,5 +1,9 @@
 package interval
 
+import (
+	"errors"
+)
+
 // Find returns the value which interval key exactly matches with the given start and end interval.
 // It returns true as the second return value if an exaclty matching interval key is found in the tree;
 // otherwise, false.
@@ -484,13 +488,13 @@ func maxEnd[V, T any](n *node[V, T], searchEnd T, cmp CmpFunc[T], visit func(*no
 var StopTraversal = errors.New("stop tree traversal")
 
 // VisitFunc is called on all values. Returning non-nil error will stop iteration.
-// If the returned error is [StopTraversal], the iteration is interrupted, but no error is returned to the caller. 
-type VisitFunc[V, T any] func(V, T) error
+// If the returned error is [StopTraversal], the iteration is interrupted, but no error is returned to the caller.
+type VisitFunc[V, T any] func(T, T, V) error
 
 // InOrderTraverse traverses the tree in order and applies VisitFunc to each node. It's safe for concurrent use. To prevent deadlock, avoid calling other tree methods within visitFunc.
 func (st *SearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
-	tree.mu.RLock()
-	defer tree.mu.RUnlock()
+	st.mu.RLock()
+	defer st.mu.RUnlock()
 
 	var inOrder func(n *node[V, T]) error
 	inOrder = func(n *node[V, T]) error {
@@ -504,7 +508,7 @@ func (st *SearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
 		}
 
 		// Visit current node
-		err := visitFunc(n.Interval.Val, n.Interval.Start)
+		err := visitFunc(n.Interval.Start, n.Interval.End, n.Interval.Val)
 		if err != nil {
 			return err
 		}
@@ -513,18 +517,18 @@ func (st *SearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
 		return inOrder(n.Right)
 	}
 
-	err := inOrder(tree.root)
+	err := inOrder(st.root)
 	// Do not percolate StopTraversal error to the caller.
 	if errors.Is(err, StopTraversal) {
-	        return nil
+		return nil
 	}
 	return err
 }
 
 // InOrderTraverse traverses the tree in order and applies VisitFunc to each node. It's safe for concurrent use. To prevent deadlock, avoid calling other tree methods within visitFunc.
-func (st *MultiValueSearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
-	tree.mu.RLock()
-	defer tree.mu.RUnlock()
+func (st *MultiValueSearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[[]V, T]) error {
+	st.mu.RLock()
+	defer st.mu.RUnlock()
 
 	var inOrder func(n *node[V, T]) error
 	inOrder = func(n *node[V, T]) error {
@@ -538,7 +542,7 @@ func (st *MultiValueSearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T])
 		}
 
 		// Visit current node
-	        err := visitFunc(n.Interval.Vals, n.Interval.Start)
+		err := visitFunc(n.Interval.Start, n.Interval.End, n.Interval.Vals)
 		if err != nil {
 			return err
 		}
@@ -547,10 +551,10 @@ func (st *MultiValueSearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T])
 		return inOrder(n.Right)
 	}
 
-	err := inOrder(tree.root)
+	err := inOrder(st.root)
 	// Do not percolate StopTraversal error to the caller.
 	if errors.Is(err, StopTraversal) {
-	        return nil
+		return nil
 	}
 	return err
 }
