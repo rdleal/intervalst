@@ -478,3 +478,79 @@ func maxEnd[V, T any](n *node[V, T], searchEnd T, cmp CmpFunc[T], visit func(*no
 		maxEnd(n.Right, searchEnd, cmp, visit)
 	}
 }
+
+// StopTraversal is used as a return value from [VisitFunc] to indicate that the iteration is to be stopped.
+// It is not returned as an error by any function.
+var StopTraversal = errors.New("stop tree traversal")
+
+// VisitFunc is called on all values. Returning non-nil error will stop iteration.
+// If the returned error is [StopTraversal], the iteration is interrupted, but no error is returned to the caller. 
+type VisitFunc[V, T any] func(V, T) error
+
+// InOrderTraverse traverses the tree in order and applies VisitFunc to each node. It's safe for concurrent use. To prevent deadlock, avoid calling other tree methods within visitFunc.
+func (st *SearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
+	tree.mu.RLock()
+	defer tree.mu.RUnlock()
+
+	var inOrder func(n *node[V, T]) error
+	inOrder = func(n *node[V, T]) error {
+		if n == nil {
+			return nil
+		}
+
+		// Visit left child
+		if err := inOrder(n.Left); err != nil {
+			return err
+		}
+
+		// Visit current node
+		err := visitFunc(n.Interval.Val, n.Interval.Start)
+		if err != nil {
+			return err
+		}
+
+		// Visit right child
+		return inOrder(n.Right)
+	}
+
+	err := inOrder(tree.root)
+	// Do not percolate StopTraversal error to the caller.
+	if errors.Is(err, StopTraversal) {
+	        return nil
+	}
+	return err
+}
+
+// InOrderTraverse traverses the tree in order and applies VisitFunc to each node. It's safe for concurrent use. To prevent deadlock, avoid calling other tree methods within visitFunc.
+func (st *MultiValueSearchTree[V, T]) InOrderTraverse(visitFunc VisitFunc[V, T]) error {
+	tree.mu.RLock()
+	defer tree.mu.RUnlock()
+
+	var inOrder func(n *node[V, T]) error
+	inOrder = func(n *node[V, T]) error {
+		if n == nil {
+			return nil
+		}
+
+		// Visit left child
+		if err := inOrder(n.Left); err != nil {
+			return err
+		}
+
+		// Visit current node
+	        err := visitFunc(n.Interval.Vals, n.Interval.Start)
+		if err != nil {
+			return err
+		}
+
+		// Visit right child
+		return inOrder(n.Right)
+	}
+
+	err := inOrder(tree.root)
+	// Do not percolate StopTraversal error to the caller.
+	if errors.Is(err, StopTraversal) {
+	        return nil
+	}
+	return err
+}
